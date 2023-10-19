@@ -45,8 +45,8 @@ Output file (add csv):
 
 # --- parameters
 # input
-vcf_file_name = "/home/enrico/PNRR/imputed_VNN_WGS_ALL.vcf"
-phenotypes_file_name = "/home/enrico/PNRR/bin_file.txt"
+vcf_file_name = "imputed_VNN_WGS_ALL.vcf"
+phenotypes_file_name = "bin_file.txt"
 # output
 main_csv_name = "main.csv"
 add_csv_name = "add.csv"
@@ -61,7 +61,7 @@ def convert(v):
 
 
 # --- read bin file
-print(f"Reading {phenotypes_file_name}...")
+print(f"Reading {phenotypes_file_name}...", flush=True)
 
 phenotypes_df = pd.read_csv(phenotypes_file_name, delim_whitespace=True, names=["?", "individual", "phenotype"],
                             true_values=["2"],
