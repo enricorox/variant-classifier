@@ -1,9 +1,10 @@
+from collections import defaultdict
+
 import graphviz
 import pandas as pd
 import xgboost as xgb
 from numpy import ndarray
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
 from xgboost import Booster
 
 
@@ -30,11 +31,15 @@ class XGBoostVariant:
         print(f"Using XGBoost version {xgb.__version__}")
 
     def read_datasets(self, data_file, feature_weights=None):
-        print("Loading data...")
-        data = pd.read_csv(data_file)
+        print("Loading data...", flush=True)
+        data = pd.read_csv(data_file, low_memory=False,
+                           true_values=["True"],  # inferred dtype
+                           false_values=["False"]  # inferred dtype
+                           )
 
         # drop first column
-        data = data.drop(columns=["Unnamed: 0"])
+        data = data.drop(columns=[data.columns[0]])
+
         # shuffle
         data = data.sample(frac=1.0, random_state=self.random_state).reset_index(drop=True)
 
@@ -123,7 +128,13 @@ class XGBoostVariant:
         accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
         print(f"Accuracy = {accuracy}")
 
+        importance = self.bst.get_score(importance_type="weight")
+        importance = sorted(importance.items(), key=lambda item: item[1], reverse=True)
+        print("Top 10 features:")
+        print(importance[:100])
+
     def plot_trees(self, tree_set=None):
+        print("Printing trees...")
         if tree_set is None:
             tree_set = range(self.num_trees)
 
@@ -131,6 +142,7 @@ class XGBoostVariant:
             graph: graphviz.Source
             graph = xgb.to_graphviz(self.bst, num_trees=i)
             graph.render(filename=f"{self.model_name}-{i}", directory="trees", format="png", cleanup=True)
+        print("Done.")
 
 
 if __name__ == "__main__":
