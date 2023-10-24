@@ -7,10 +7,12 @@
 #SBATCH --mail-type ALL
 #SBATCH
 #SBATCH --time 35-00:00:00
-#SBATCH --cpus-per-task 1
+# use many CPU if not using CUDA
+#SBATCH --cpus-per-task 32
 #SBATCH --partition allgroups
 #SBATCH --mem 500G
-#SBATCH --gres=gpu:rtx
+# uncomment to use GPU
+##SBATCH --gres=gpu:rtx
 
 source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 

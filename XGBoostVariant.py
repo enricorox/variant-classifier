@@ -77,7 +77,7 @@ class XGBoostVariant:
             raise Exception("Need to load training datasets first!")
 
         if params is None:
-            params = {"verbosity": 1, "device": "cuda", "objective": "binary:hinge", "tree_method": "hist",
+            params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": "hist",
                       "colsample_bytree": .8, "seed": self.random_state}
             # params["eval_metric"] = "auc"
         if evals is None:
