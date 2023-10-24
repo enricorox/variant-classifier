@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name train-xgboost
-#SBATCH --output logs/train.log
-#SBATCH --error logs/train.log
+#SBATCH --job-name train-lazy
+#SBATCH --output logs/train-lazy.log
+#SBATCH --error logs/train-lazy.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
 #SBATCH
