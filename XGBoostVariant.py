@@ -98,6 +98,9 @@ class XGBoostVariant:
         self.best_it = self.bst.best_iteration
         self.best_score = self.bst.best_score
 
+        # save model
+        self.bst.save_model(f"{self.model_name}.json")
+
     def predict(self, iteration_range=None):
         if iteration_range is None:
             iteration_range = (0, self.best_it)
