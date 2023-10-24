@@ -25,7 +25,7 @@ class XGBoostVariant:
         self.random_state = 42
         self.model_name = model_name
         self.num_trees = num_trees
-        self.label = "phenotype"
+        self.label_name = "phenotype"
         self.train_frac = .8
 
         print(f"Using XGBoost version {xgb.__version__}")
@@ -42,14 +42,14 @@ class XGBoostVariant:
         data = data.sample(frac=1.0, random_state=self.random_state)
 
         point = round(len(data) * self.train_frac)
-        X_train, y_train = data.iloc[:point].drop(self.label, axis=1), data.iloc[:point][[self.label]]
-        X_test, y_test = data.iloc[point:].drop(self.label, axis=1), data.iloc[point:][[self.label]]
+        X_train, y_train = data.iloc[:point].drop(self.label_name, axis=1), data.iloc[:point][[self.label_name]]
+        X_test, y_test = data.iloc[point:].drop(self.label_name, axis=1), data.iloc[point:][[self.label_name]]
 
         print("Stats (train data):")
         print(f"\tData points: {X_train.shape[0]}")
         print(f"\t\tnumber of features: {X_train.shape[1]}")
-        print(f"\t\tlabel(0) counts: {(y_train[self.label] == 0).sum() / len(y_train[self.label]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: {(y_train[self.label] == 1).sum() / len(y_train[self.label]) * 100 : .2f} %")
+        print(f"\t\tlabel(0) counts: {(y_train[self.label_name] == 0).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: {(y_train[self.label_name] == 1).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
         print("Transforming into DMatrices...")
         self.dtrain = xgb.DMatrix(X_train, y_train)
 
@@ -58,8 +58,8 @@ class XGBoostVariant:
         print("Stats (test data):")
         print(f"\tData points: {X_test.shape[0]}")
         print(f"\t\tnumber of features: {X_train.shape[1]}")
-        print(f"\t\tlabel(0) counts: {(y_test[self.label] == 0).sum() / len(y_test[self.label]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: {(y_test[self.label] == 1).sum() / len(y_test[self.label]) * 100 : .2f} %")
+        print(f"\t\tlabel(0) counts: {(y_test[self.label_name] == 0).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: {(y_test[self.label_name] == 1).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
         print("Transforming into DMatrices...")
         self.y_test = y_test
         self.dtest = xgb.DMatrix(X_test)
@@ -119,9 +119,9 @@ class XGBoostVariant:
         false_neg = conf_mat[1][0]
         false_pos = conf_mat[0][1]
 
-        assert (true_pos + false_neg) == sum(self.y_test[self.label])
-        assert (true_neg + false_pos) == len(self.y_test[self.label]) - sum(self.y_test[self.label])
-        assert (true_neg + true_pos + false_neg + false_pos) == len(self.y_test[self.label])
+        assert (true_pos + false_neg) == sum(self.y_test[self.label_name])
+        assert (true_neg + false_pos) == len(self.y_test[self.label_name]) - sum(self.y_test[self.label_name])
+        assert (true_neg + true_pos + false_neg + false_pos) == len(self.y_test[self.label_name])
 
         print(f"TN={true_neg}\tFP={false_pos}")
         print(f"FN={false_neg}\tTP={true_pos}")
