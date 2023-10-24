@@ -38,11 +38,8 @@ class XGBoostVariant:
                            index_col=0  # first column as index
                            )
 
-        # drop first column
-        data = data.drop(columns=[data.columns[0]])
-
         # shuffle
-        data = data.sample(frac=1.0, random_state=self.random_state).reset_index(drop=True)
+        data = data.sample(frac=1.0, random_state=self.random_state)
 
         point = round(len(data) * self.train_frac)
         X_train, y_train = data.iloc[:point].drop(self.label, axis=1), data.iloc[:point][[self.label]]
