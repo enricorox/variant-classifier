@@ -33,8 +33,9 @@ class XGBoostVariant:
     def read_datasets(self, data_file, feature_weights=None):
         print("Loading data...", flush=True)
         data = pd.read_csv(data_file, low_memory=False,
-                           true_values=["True"],  # inferred dtype
-                           false_values=["False"]  # inferred dtype
+                           true_values=["True"],  # no inferred dtype
+                           false_values=["False"],  # no inferred dtype
+                           index_col=0  # first column as index
                            )
 
         # drop first column
