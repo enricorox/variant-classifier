@@ -127,7 +127,7 @@ class XGBoostVariant:
         print(f"FN={false_neg}\tTP={true_pos}")
 
         accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
-        print(f"Accuracy = {accuracy}")
+        print(f"Accuracy = {accuracy * 100 : .2f} %")
 
         importance = self.bst.get_score(importance_type="weight")
         importance = sorted(importance.items(), key=lambda item: item[1], reverse=True)
