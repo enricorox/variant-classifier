@@ -26,7 +26,7 @@ class XGBoostVariant:
         self.model_name = model_name
         self.num_trees = num_trees
         self.label_name = "phenotype"
-        self.train_frac = .8
+        self.train_frac = .33
 
         print(f"Using XGBoost version {xgb.__version__}")
 
@@ -43,7 +43,8 @@ class XGBoostVariant:
 
         point = round(len(data) * self.train_frac)
         X_train, y_train = data.iloc[:point].drop(self.label_name, axis=1), data.iloc[:point][[self.label_name]]
-        X_test, y_test = data.iloc[point:].drop(self.label_name, axis=1), data.iloc[point:][[self.label_name]]
+        X_validation, y_validation = data.iloc[point:2*point].drop(self.label_name, axis=1), data.iloc[point:2*point][[self.label_name]]
+        X_test, y_test = data.iloc[2*point:].drop(self.label_name, axis=1), data.iloc[2*point:][[self.label_name]]
 
         print("Stats (train data):")
         print(f"\tData points: {X_train.shape[0]}")
@@ -52,6 +53,16 @@ class XGBoostVariant:
         print(f"\t\tlabel(1) counts: {(y_train[self.label_name] == 1).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
         print("Transforming into DMatrices...")
         self.dtrain = xgb.DMatrix(X_train, y_train)
+
+        print()
+
+        print("Stats (validation data):")
+        print(f"\tData points: {X_train.shape[0]}")
+        print(f"\t\tnumber of features: {X_validation.shape[1]}")
+        print(f"\t\tlabel(0) counts: {(y_validation[self.label_name] == 0).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: {(y_validation[self.label_name] == 1).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
+        print("Transforming into DMatrices...")
+        self.dvalidation = xgb.DMatrix(X_validation, y_validation)
 
         print()
 
@@ -66,8 +77,6 @@ class XGBoostVariant:
 
         print()
 
-        self.dvalidation = None
-
         if feature_weights is not None:
             assert len(feature_weights) == self.dtrain.num_col()
             self.dtrain.set_info(feature_weights=feature_weights)
@@ -78,7 +87,8 @@ class XGBoostVariant:
 
         if params is None:
             params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": "hist",
-                      "colsample_bytree": .8, "seed": self.random_state}
+                      "colsample_bynode": .8, "seed": self.random_state,
+                      "eta": .2}
             # params["eval_metric"] = "auc"
         if evals is None:
             if self.dvalidation is None:
@@ -90,7 +100,7 @@ class XGBoostVariant:
                              num_boost_round=self.num_trees,
                              evals=evals,
                              verbose_eval=10,
-                             early_stopping_rounds=50,
+                             early_stopping_rounds=50
                              )
 
         # update number of trees in case of early stopping
