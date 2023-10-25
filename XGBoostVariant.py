@@ -87,8 +87,8 @@ class XGBoostVariant:
 
         if params is None:
             params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": "hist",
-                      "colsample_bynode": .8, "seed": self.random_state,
-                      "eta": .2}
+                      "colsample_bytree": 1, "seed": self.random_state,
+                      "eta": .3, "max_depth": 6}
             # params["eval_metric"] = "auc"
         if evals is None:
             if self.dvalidation is None:
