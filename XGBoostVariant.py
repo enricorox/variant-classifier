@@ -5,6 +5,7 @@ import pandas as pd
 import xgboost as xgb
 from numpy import ndarray
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
 from xgboost import Booster
 
 
@@ -22,29 +23,41 @@ class XGBoostVariant:
     y_test: ndarray
 
     def __init__(self, model_name="xgbtree", num_trees=10):
+        self.features = None
+        self.importance = None
         self.random_state = 42
         self.model_name = model_name
         self.num_trees = num_trees
         self.label_name = "phenotype"
-        self.train_frac = .33
+        self.train_frac = .50
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, data_file, feature_weights=None):
+    def read_datasets(self, data_file, validation=False, feature_weights=None):
         print("Loading data...", flush=True)
         data = pd.read_csv(data_file, low_memory=False,
                            true_values=["True"],  # no inferred dtype
                            false_values=["False"],  # no inferred dtype
-                           index_col=0  # first column as index
+                           index_col=0,  # first column as index
+                           header=0  # first row as header
                            )
 
+        self.features = data.columns[1:]
         # shuffle
         data = data.sample(frac=1.0, random_state=self.random_state)
 
-        point = round(len(data) * self.train_frac)
-        X_train, y_train = data.iloc[:point].drop(self.label_name, axis=1), data.iloc[:point][[self.label_name]]
-        X_validation, y_validation = data.iloc[point:2*point].drop(self.label_name, axis=1), data.iloc[point:2*point][[self.label_name]]
-        X_test, y_test = data.iloc[2*point:].drop(self.label_name, axis=1), data.iloc[2*point:][[self.label_name]]
+        if validation:
+            X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
+                                                                data[[self.label_name]],
+                                                                train_size=self.train_frac)
+            X_train, X_validation, y_train, y_validation = train_test_split(X_train,
+                                                                            y_train,
+                                                                            train_size=self.train_frac)
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
+                                                                data[[self.label_name]],
+                                                                train_size=self.train_frac)
+            self.dvalidation = None
 
         print("Stats (train data):")
         print(f"\tData points: {X_train.shape[0]}")
@@ -53,16 +66,17 @@ class XGBoostVariant:
         print(f"\t\tlabel(1) counts: {(y_train[self.label_name] == 1).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
         print("Transforming into DMatrices...")
         self.dtrain = xgb.DMatrix(X_train, y_train)
-
+        print(self.dtrain)
         print()
 
-        print("Stats (validation data):")
-        print(f"\tData points: {X_train.shape[0]}")
-        print(f"\t\tnumber of features: {X_validation.shape[1]}")
-        print(f"\t\tlabel(0) counts: {(y_validation[self.label_name] == 0).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: {(y_validation[self.label_name] == 1).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
-        print("Transforming into DMatrices...")
-        self.dvalidation = xgb.DMatrix(X_validation, y_validation)
+        if validation:
+            print("Stats (validation data):")
+            print(f"\tData points: {X_validation.shape[0]}")
+            print(f"\t\tnumber of features: {X_validation.shape[1]}")
+            print(f"\t\tlabel(0) counts: {(y_validation[self.label_name] == 0).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
+            print(f"\t\tlabel(1) counts: {(y_validation[self.label_name] == 1).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
+            print("Transforming into DMatrices...")
+            self.dvalidation = xgb.DMatrix(X_validation, y_validation)
 
         print()
 
@@ -78,8 +92,18 @@ class XGBoostVariant:
         print()
 
         if feature_weights is not None:
+            print("Setting weights...")
             assert len(feature_weights) == self.dtrain.num_col()
             self.dtrain.set_info(feature_weights=feature_weights)
+
+    def set_weights(self, weights=None):
+        if weights is None:
+            weights = self.importance
+        fw = []
+        for feature in self.features:
+            fw.append(weights.get(feature, 0))
+
+        self.dtrain.set_info(feature_weights=fw)
 
     def fit(self, params=None, evals=None):
         if self.dtrain is None:
@@ -87,9 +111,10 @@ class XGBoostVariant:
 
         if params is None:
             params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": "hist",
-                      "colsample_bytree": 1, "seed": self.random_state,
+                      "colsample_bytree": .75, "seed": self.random_state,
                       "eta": .3, "max_depth": 6}
             # params["eval_metric"] = "auc"
+
         if evals is None:
             if self.dvalidation is None:
                 evals = [(self.dtrain, "training")]
@@ -141,18 +166,23 @@ class XGBoostVariant:
 
         importance = self.bst.get_score(importance_type="weight")
         importance = sorted(importance.items(), key=lambda item: item[1], reverse=True)
-        print("Top 10 features:")
-        print(importance[:100])
+        self.importance = dict(importance)
+        num_feat = 100
+        print(f"Top {num_feat}/{len(importance)} features:")
+        print(importance[:num_feat])
 
-    def plot_trees(self, tree_set=None):
+    def plot_trees(self, tree_set=None, tree_name=None):
         print("Printing trees...")
         if tree_set is None:
             tree_set = range(self.num_trees)
 
+        if tree_name is None:
+            tree_name = self.model_name
+
         for i in tree_set:
             graph: graphviz.Source
             graph = xgb.to_graphviz(self.bst, num_trees=i)
-            graph.render(filename=f"{self.model_name}-{i}", directory="trees", format="png", cleanup=True)
+            graph.render(filename=f"{tree_name}-{i}", directory="trees", format="png", cleanup=True)
         print("Done.")
 
 
@@ -166,6 +196,12 @@ if __name__ == "__main__":
     clf.predict()
     clf.print_stats()
     clf.plot_trees()
+
+    clf.set_weights()
+    clf.fit()
+    clf.predict()
+    clf.print_stats()
+    clf.plot_trees(tree_name="weighted")
 
 # TODO add max_depth
 # TODO add variable constraints
