@@ -5,6 +5,7 @@ from lazypredict.Supervised import LazyClassifier
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import Perceptron
+from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import BernoulliNB, GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
@@ -34,15 +35,10 @@ data = pd.read_csv(data_file, low_memory=False,
 print("Done.")
 
 label_name = "phenotype"
-train_frac = .5
-point = round(len(data) * train_frac)
+train_frac = .8
 
-# shuffle
-data = data.sample(frac=1.0, random_state=42)
-
-# split
-X_train, y_train = data.iloc[:point].drop(label_name, axis=1), data.iloc[:point][[label_name]]
-X_test, y_test = data.iloc[point:].drop(label_name, axis=1), data.iloc[point:][[label_name]]
+X_train, X_test, y_train, y_test = train_test_split(data.drop(label_name, axis=1), data[[label_name]],
+                                                    train_size=train_frac, random_state=42)
 
 classifiers = [LinearSVC, Perceptron, RandomForestClassifier, QuadraticDiscriminantAnalysis, KNeighborsClassifier, BernoulliNB, GaussianNB, DecisionTreeClassifier]
 clf = LazyClassifier(verbose=5, ignore_warnings=True, custom_metric=None, classifiers=classifiers)
