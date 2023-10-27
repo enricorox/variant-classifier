@@ -29,7 +29,7 @@ class XGBoostVariant:
         self.model_name = model_name
         self.num_trees = num_trees
         self.label_name = "phenotype"
-        self.train_frac = .50
+        self.train_frac = .8
 
         print(f"Using XGBoost version {xgb.__version__}")
 
@@ -42,22 +42,22 @@ class XGBoostVariant:
                            header=0  # first row as header
                            )
 
-        self.features = data.columns[1:]
-        # shuffle
-        data = data.sample(frac=1.0, random_state=self.random_state)
+        self.features = list(data.columns[:-1])
 
         if validation:
             X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
                                                                 data[[self.label_name]],
-                                                                train_size=self.train_frac)
-            X_train, X_validation, y_train, y_validation = train_test_split(X_train,
-                                                                            y_train,
-                                                                            train_size=self.train_frac)
+                                                                train_size=self.train_frac,
+                                                                random_state=self.random_state)
+            X_test, X_validation, y_test, y_validation = train_test_split(X_test,
+                                                                            y_test,
+                                                                            train_size=.5,
+                                                                            random_state=self.random_state)
         else:
             X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
                                                                 data[[self.label_name]],
-                                                                train_size=self.train_frac)
-            self.dvalidation = None
+                                                                train_size=self.train_frac,
+                                                                random_state=self.random_state)
 
         print("Stats (train data):")
         print(f"\tData points: {X_train.shape[0]}")
@@ -66,7 +66,6 @@ class XGBoostVariant:
         print(f"\t\tlabel(1) counts: {(y_train[self.label_name] == 1).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
         print("Transforming into DMatrices...")
         self.dtrain = xgb.DMatrix(X_train, y_train)
-        print(self.dtrain)
         print()
 
         if validation:
@@ -77,8 +76,9 @@ class XGBoostVariant:
             print(f"\t\tlabel(1) counts: {(y_validation[self.label_name] == 1).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
             print("Transforming into DMatrices...")
             self.dvalidation = xgb.DMatrix(X_validation, y_validation)
-
-        print()
+            print()
+        else:
+            self.dvalidation = None
 
         print("Stats (test data):")
         print(f"\tData points: {X_test.shape[0]}")
@@ -96,13 +96,18 @@ class XGBoostVariant:
             assert len(feature_weights) == self.dtrain.num_col()
             self.dtrain.set_info(feature_weights=feature_weights)
 
-    def set_weights(self, weights=None):
+    def set_weights(self, weights=None, equal_weight=False):
         if weights is None:
             weights = self.importance
+
         fw = []
         for feature in self.features:
-            fw.append(weights.get(feature, 0))
+            w = weights.get(feature, 0)
+            if equal_weight and w > 0:
+                w = 1
+            fw.append(w)
 
+        print(fw)
         self.dtrain.set_info(feature_weights=fw)
 
     def fit(self, params=None, evals=None):
@@ -191,17 +196,18 @@ if __name__ == "__main__":
     data_file = dataset_folder + "main.csv"
 
     clf = XGBoostVariant(num_trees=100)
-    clf.read_datasets(data_file)
+    clf.read_datasets(data_file, validation=False)
     clf.fit()
     clf.predict()
     clf.print_stats()
-    clf.plot_trees()
+    # clf.plot_trees()
 
-    clf.set_weights()
-    clf.fit()
-    clf.predict()
-    clf.print_stats()
-    clf.plot_trees(tree_name="weighted")
+    for _ in range(10):
+        clf.set_weights(equal_weight=True)
+        clf.fit()
+        clf.predict()
+        clf.print_stats()
+        # clf.plot_trees(tree_name="weighted")
 
 # TODO add max_depth
 # TODO add variable constraints
