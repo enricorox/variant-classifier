@@ -200,14 +200,14 @@ if __name__ == "__main__":
     clf.fit()
     clf.predict()
     clf.print_stats()
-    # clf.plot_trees()
 
     for _ in range(10):
         clf.set_weights(equal_weight=True)
         clf.fit()
         clf.predict()
         clf.print_stats()
-        # clf.plot_trees(tree_name="weighted")
+
+    clf.plot_trees(tree_name="weighted")
 
 # TODO add max_depth
 # TODO add variable constraints
