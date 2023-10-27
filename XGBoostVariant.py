@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import graphviz
 import pandas as pd
 import xgboost as xgb
@@ -107,7 +105,6 @@ class XGBoostVariant:
                 w = 1
             fw.append(w)
 
-        print(fw)
         self.dtrain.set_info(feature_weights=fw)
 
     def fit(self, params=None, evals=None):
@@ -137,6 +134,9 @@ class XGBoostVariant:
         self.num_trees = self.bst.num_boosted_rounds()
         self.best_it = self.bst.best_iteration
         self.best_score = self.bst.best_score
+
+        # features importance
+        self.importance = self.bst.get_score(importance_type="weight")
 
         # save model
         self.bst.save_model(f"{self.model_name}.json")
@@ -169,10 +169,8 @@ class XGBoostVariant:
         accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
         print(f"Accuracy = {accuracy * 100 : .2f} %")
 
-        importance = self.bst.get_score(importance_type="weight")
-        importance = sorted(importance.items(), key=lambda item: item[1], reverse=True)
-        self.importance = dict(importance)
         num_feat = 100
+        importance = sorted(self.importance.items(), key=lambda item: item[1], reverse=True)
         print(f"Top {num_feat}/{len(importance)} features:")
         print(importance[:num_feat])
 
@@ -197,15 +195,13 @@ if __name__ == "__main__":
 
     clf = XGBoostVariant(num_trees=100)
     clf.read_datasets(data_file, validation=False)
-    clf.fit()
-    clf.predict()
-    clf.print_stats()
 
-    for _ in range(10):
-        clf.set_weights(equal_weight=True)
+    for it in range(10):
+        print(f"\n*** Iteration {it + 1} ***")
         clf.fit()
         clf.predict()
         clf.print_stats()
+        clf.set_weights(equal_weight=True)  # for next iteration
 
     clf.plot_trees(tree_name="weighted")
 
