@@ -18,20 +18,14 @@ print(f"Using LazyPredict v{lazypredict.__version__}", flush=True)
 print("Reading dataset...", flush=True)
 
 
-def conv(v):
-    if v == "True":
-        return 1
-    else:
-        return 0
-
-
 features = pd.read_csv(data_file, nrows=0).columns[1:]
 data = pd.read_csv(data_file, low_memory=False,
-                   # true_values=["True"],  # no inferred dtype
-                   # false_values=["False"],  # no inferred dtype
-                   converters={c: conv for c in features},
+                   true_values=["True"],  # no inferred dtype
+                   false_values=["False"],  # no inferred dtype
+                   # dtype={c: int for c in features},
+                   header=0,
                    index_col=0  # first column as index
-                   )
+                   ).astype(int)
 print("Done.")
 
 label_name = "phenotype"
