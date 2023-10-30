@@ -100,9 +100,9 @@ class XGBoostVariant:
 
         fw = []
         for feature in self.features:
-            w = weights.get(feature, 0)
-            if equal_weight and w > 0:
-                w = 1
+            w = weights.get(feature, 1)
+            if equal_weight and w > 1:
+                w = 2
             fw.append(w)
 
         self.dtrain.set_info(feature_weights=fw)
