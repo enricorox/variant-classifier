@@ -113,8 +113,8 @@ class XGBoostVariant:
 
         if params is None:
             params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": "hist",
-                      "colsample_bytree": .75, "seed": self.random_state,
-                      "eta": .3, "max_depth": 6}
+                      "colsample_bytree": .01, "seed": self.random_state,
+                      "eta": .03, "max_depth": 6}
             # params["eval_metric"] = "auc"
 
         if evals is None:
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     dataset_folder = "./"
     data_file = dataset_folder + "main.csv"
 
-    clf = XGBoostVariant(num_trees=100)
+    clf = XGBoostVariant(num_trees=1000)
     clf.read_datasets(data_file, validation=False)
 
     for it in range(10):
