@@ -42,6 +42,8 @@ class XGBoostVariant:
 
         self.features = list(data.columns[:-1])
 
+        data = self._drop_chr3(data)
+
         if validation:
             X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
                                                                 data[[self.label_name]],
@@ -188,6 +190,21 @@ class XGBoostVariant:
             graph.render(filename=f"{tree_name}-{i}", directory="trees", format="png", cleanup=True)
         print("Done.")
 
+    def _drop_chr3(self, data):
+        features = []
+        for f in self.features:
+            if "CAJNNU010000003" in f:
+                data.drop(f, axis=1)
+            else:
+                features.append(f)
+        self.features = features
+        return data
+
+    def write_importance(self, filename):
+        with open(filename, 'w') as importance_file:
+            for item in self.importance.items():
+                importance_file.write(f"{item[0]}, {item[1]}\n")
+
 
 if __name__ == "__main__":
     dataset_folder = "./"
@@ -201,6 +218,7 @@ if __name__ == "__main__":
         clf.fit()
         clf.predict()
         clf.print_stats()
+        clf.write_importance(f"importance-{it}.csv")
         clf.set_weights(equal_weight=True)  # for next iteration
 
     clf.plot_trees(tree_name="weighted")
