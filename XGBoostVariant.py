@@ -42,7 +42,7 @@ class XGBoostVariant:
 
         self.features = list(data.columns[:-1])
 
-        data = self._drop_chr3(data)
+        # data = self._drop_chr3(data)
 
         if validation:
             X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
