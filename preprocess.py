@@ -87,7 +87,7 @@ print()
 print(f"Reading {vcf_file_name}...")
 
 print("\tCorrecting header...")
-vcf_header_df = pd.read_csv(vcf_file_name, delim_whitespace=True, skiprows=29, nrows=1, dtype=str, header=None)
+vcf_header_df = pd.read_csv(vcf_file_name, delim_whitespace=True, skiprows=28, nrows=1, dtype=str, header=None)
 header = [""]  # empty string for id column
 for x in vcf_header_df.loc[0][9:]:
     u = len(x) // 2
