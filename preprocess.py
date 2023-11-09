@@ -45,10 +45,10 @@ Output file (add csv):
 
 # --- parameters
 # input
-vcf_file_name = "imputed_VNN_WGS_ALL.vcf"
+vcf_file_name = "imputed_VNN_WGS_ALL-nochr3.vcf"
 phenotypes_file_name = "bin_file.txt"
 # output
-main_csv_name = "main.csv"
+main_csv_name = "main-nochr3.csv"
 add_csv_name = "add.csv"
 # ---
 
