@@ -208,7 +208,7 @@ class XGBoostVariant:
 
 if __name__ == "__main__":
     dataset_folder = "./"
-    data_file = dataset_folder + "main.csv"
+    data_file = dataset_folder + "main-nochr3.csv"
 
     clf = XGBoostVariant(num_trees=100)
     clf.read_datasets(data_file, validation=False)
