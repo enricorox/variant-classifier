@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import graphviz
 import pandas as pd
@@ -205,6 +206,7 @@ class XGBoostVariant:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='XGBoost variant classifier')
+    parser.add_argument("--model_name", type=str, default="default-model", help="Model name")
     parser.add_argument("--csv", type=str, default="main.csv", help="Input csv file")
     parser.add_argument("--method", type=str, default="hist", help="Tree method")
     parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
@@ -216,9 +218,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    clf = XGBoostVariant(num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
+    clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method)
     clf.read_datasets(args.csv, validation=args.validate)
+
+    try:
+        os.mkdir(args.model_name)
+    except FileExistsError:
+        pass
+    os.chdir(args.model_name)
 
     for it in range(args.iterations):
         print(f"\n*** Iteration {it + 1} ***")
