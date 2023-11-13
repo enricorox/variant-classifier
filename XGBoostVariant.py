@@ -25,7 +25,7 @@ class XGBoostVariant:
     features = None
     importance = None
 
-    def __init__(self, model_name="xgbtree", num_trees=10, max_depth=6, eta=.3, sample_bytree=250/6072853):
+    def __init__(self, model_name="xgbtree", num_trees=10, max_depth=6, eta=.3, sample_bytree=250/6072853, method="hist"):
         self.max_depth = max_depth
         self.eta = eta
         self.by_tree = sample_bytree
@@ -34,6 +34,7 @@ class XGBoostVariant:
         self.num_trees = num_trees
         self.label_name = "phenotype"
         self.train_frac = .8
+        self.method = method
 
         print(f"Using XGBoost version {xgb.__version__}")
 
@@ -120,7 +121,7 @@ class XGBoostVariant:
             raise Exception("Need to load training datasets first!")
 
         if params is None:
-            params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": "hist",
+            params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": self.method,
                       "colsample_bytree": self.by_tree, "seed": self.random_state,
                       "eta": self.eta, "max_depth": self.max_depth}
             # params["eval_metric"] = "auc"
@@ -205,6 +206,7 @@ class XGBoostVariant:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='XGBoost variant classifier')
     parser.add_argument("--csv", type=str, default="main.csv", help="Input csv file")
+    parser.add_argument("--method", type=str, default="hist", help="Tree method")
     parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
     parser.add_argument('--validate', default=False, action="store_true")
     parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
@@ -212,11 +214,10 @@ if __name__ == "__main__":
     parser.add_argument("--sample_bytree", type=float, default=2250/6072853, help="Sample by tree")
     parser.add_argument("--iterations", type=int, default=10, help="Number of iterations")
 
-
     args = parser.parse_args()
 
     clf = XGBoostVariant(num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
-                         sample_bytree=args.sample_bytree)
+                         sample_bytree=args.sample_bytree, method=args.method)
     clf.read_datasets(args.csv, validation=args.validate)
 
     for it in range(args.iterations):
