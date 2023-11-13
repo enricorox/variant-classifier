@@ -1,3 +1,5 @@
+import argparse
+
 import graphviz
 import pandas as pd
 import xgboost as xgb
@@ -20,9 +22,13 @@ class XGBoostVariant:
     y_pred: ndarray
     y_test: ndarray
 
-    def __init__(self, model_name="xgbtree", num_trees=10):
-        self.features = None
-        self.importance = None
+    features = None
+    importance = None
+
+    def __init__(self, model_name="xgbtree", num_trees=10, max_depth=6, eta=.3, sample_bytree=250/6072853):
+        self.max_depth = max_depth
+        self.eta = eta
+        self.by_tree = sample_bytree
         self.random_state = 42
         self.model_name = model_name
         self.num_trees = num_trees
@@ -115,8 +121,8 @@ class XGBoostVariant:
 
         if params is None:
             params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": "hist",
-                      "colsample_bytree": 250/6072853, "seed": self.random_state,
-                      "eta": .3, "max_depth": 6}
+                      "colsample_bytree": self.by_tree, "seed": self.random_state,
+                      "eta": self.eta, "max_depth": self.max_depth}
             # params["eval_metric"] = "auc"
 
         if evals is None:
@@ -207,13 +213,23 @@ class XGBoostVariant:
 
 
 if __name__ == "__main__":
-    dataset_folder = "./"
-    data_file = dataset_folder + "main-nochr3.csv"
+    parser = argparse.ArgumentParser(description='XGBoost variant classifier')
+    parser.add_argument("--csv", type=str, default="main.csv", help="Input csv file")
+    parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
+    parser.add_argument('--validate', default=False, action="store_true")
+    parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
+    parser.add_argument("--eta", type=float, default=.3, help="Learning rate")
+    parser.add_argument("--sample_bytree", type=float, default=2250/6072853, help="Sample by tree")
+    parser.add_argument("--iterations", type=int, default=10, help="Number of iterations")
 
-    clf = XGBoostVariant(num_trees=100)
-    clf.read_datasets(data_file, validation=False)
 
-    for it in range(10):
+    args = parser.parse_args()
+
+    clf = XGBoostVariant(num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
+                         sample_bytree=args.sample_bytree)
+    clf.read_datasets(args.csv, validation=args.validate)
+
+    for it in range(args.iterations):
         print(f"\n*** Iteration {it + 1} ***")
         clf.fit()
         clf.predict()
@@ -223,10 +239,8 @@ if __name__ == "__main__":
 
     clf.plot_trees(tree_name="weighted")
 
-# TODO add max_depth
 # TODO add variable constraints
-# TODO add features sampling by *
+# TODO add features sampling by node, level
 # TODO add data points sampling
 # TODO add scale_pos_weight to balance classes
-# TODO add eta (learning rate)
 # TODO add gamma (high for conservative algorithm)
