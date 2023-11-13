@@ -196,16 +196,6 @@ class XGBoostVariant:
             graph.render(filename=f"{tree_name}-{i}", directory="trees", format="png", cleanup=True)
         print("Done.")
 
-    def _drop_chr3(self, data):
-        features = []
-        for f in self.features:
-            if "CAJNNU010000003" in f:
-                data.drop(f, axis=1)
-            else:
-                features.append(f)
-        self.features = features
-        return data
-
     def write_importance(self, filename):
         with open(filename, 'w') as importance_file:
             for item in self.importance.items():
