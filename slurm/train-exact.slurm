@@ -18,5 +18,4 @@ source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
 cd ..
 
-# srun python dna-classifier.py
-srun python XGBoostVariant.py --model_name exact --method exact --sample_bytree 1 --iterations 1
+srun python XGBoostVariant.py --model_name exact --csv main.csv --method exact --sample_bytree 1 --iterations 1
