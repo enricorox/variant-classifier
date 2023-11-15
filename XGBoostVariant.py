@@ -10,6 +10,21 @@ from sklearn.model_selection import train_test_split
 from xgboost import Booster
 
 
+def shuffle_columns(df, seed=42):
+    # print(df)
+    # Get the last column
+    last_column = df.columns[-1]
+
+    # Select all but the last columns and shuffle them
+    columns_to_shuffle = df.columns[:-1]
+    shuffled_df = df[columns_to_shuffle].sample(frac=1, axis=1, random_state=seed)
+
+    # Add the last column back to the shuffled DataFrame
+    shuffled_df[last_column] = df[last_column]
+    # print(shuffled_df)
+    return shuffled_df
+
+
 class XGBoostVariant:
     bst: Booster
     num_trees: int
@@ -39,7 +54,7 @@ class XGBoostVariant:
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, data_file, validation=False, feature_weights=None):
+    def read_datasets(self, data_file, validation=False, feature_weights=None, shuffle_features=False):
         print("Loading data...", flush=True)
         data = pd.read_csv(data_file, low_memory=False,
                            true_values=["True"],  # no inferred dtype
@@ -48,9 +63,10 @@ class XGBoostVariant:
                            header=0  # first row as header
                            )
 
-        self.features = list(data.columns[:-1])
+        if shuffle_features:
+            data = shuffle_columns(data, seed=self.random_state)
 
-        # data = self._drop_chr3(data)
+        self.features = list(data.columns[:-1])
 
         if validation:
             X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
@@ -211,6 +227,7 @@ if __name__ == "__main__":
     parser.add_argument("--method", type=str, default="hist", help="Tree method")
     parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
     parser.add_argument('--validate', default=False, action="store_true")
+    parser.add_argument('--shuffle_features', default=False, action="store_true")
     parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
     parser.add_argument("--eta", type=float, default=.3, help="Learning rate")
     parser.add_argument("--sample_bytree", type=float, default=2250/6072853, help="Sample by tree")
@@ -220,7 +237,7 @@ if __name__ == "__main__":
 
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method)
-    clf.read_datasets(args.csv, validation=args.validate)
+    clf.read_datasets(args.csv, validation=args.validate, shuffle_features=args.shuffle_features)
 
     try:
         os.mkdir(args.model_name)
