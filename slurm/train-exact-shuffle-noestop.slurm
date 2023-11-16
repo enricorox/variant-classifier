@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name train-exact
-#SBATCH --output logs/train-exact.log
-#SBATCH --error logs/train-exact.log
+#SBATCH --job-name train-exact-shuffle-noestop
+#SBATCH --output logs/train-exact-shuffle-noestop.log
+#SBATCH --error logs/train-exact-shuffle-noestop.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
 #SBATCH
@@ -18,4 +18,4 @@ source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
 cd ..
 
-srun python XGBoostVariant.py --model_name exact --csv main.csv --method exact --sample_bytree 1 --iterations 1
+srun python XGBoostVariant.py --model_name exact-shuffle-noestop --shuffle_features --csv main.csv --method exact --sample_bytree 1 --iterations 1 -num_trees 55
