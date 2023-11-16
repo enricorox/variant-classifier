@@ -55,6 +55,9 @@ class XGBoostVariant:
         self.train_frac = .8
         self.method = method
 
+        if early_stopping is None:
+            self.early_stopping = self.num_trees
+
         print(f"Using XGBoost version {xgb.__version__}")
 
     def read_datasets(self, data_file, validation=False, feature_weights=None, shuffle_features=False):
@@ -161,6 +164,8 @@ class XGBoostVariant:
 
         # update number of trees in case of early stopping
         self.num_trees = self.bst.num_boosted_rounds()
+
+        # best values
         self.best_it = self.bst.best_iteration
         self.best_score = self.bst.best_score
 
