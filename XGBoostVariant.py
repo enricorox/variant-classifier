@@ -154,7 +154,7 @@ class XGBoostVariant:
         self.bst = xgb.train(params=params, dtrain=self.dtrain,
                              num_boost_round=self.num_trees,
                              evals=evals,
-                             verbose_eval=10,
+                             verbose_eval=5,
                              early_stopping_rounds=self.early_stopping
                              )
 
