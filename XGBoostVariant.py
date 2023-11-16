@@ -5,7 +5,7 @@ import graphviz
 import pandas as pd
 import xgboost as xgb
 from numpy import ndarray
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from xgboost import Booster
 
@@ -39,9 +39,10 @@ class XGBoostVariant:
     y_test: ndarray
 
     features = None
-    importance = None
+    importance_counts = None
+    importance_gain = None
 
-    def __init__(self, model_name="xgbtree", num_trees=10, max_depth=6, eta=.3, early_stopping=50,
+    def __init__(self, model_name="default-model", num_trees=10, max_depth=6, eta=.3, early_stopping=50,
                  sample_bytree=250/6072853, method="hist"):
         self.max_depth = max_depth
         self.eta = eta
@@ -124,7 +125,7 @@ class XGBoostVariant:
 
     def set_weights(self, weights=None, equal_weight=False):
         if weights is None:
-            weights = self.importance
+            weights = self.importance_counts
 
         fw = []
         for feature in self.features:
@@ -164,7 +165,8 @@ class XGBoostVariant:
         self.best_score = self.bst.best_score
 
         # features importance
-        self.importance = self.bst.get_score(importance_type="weight")
+        self.importance_counts = self.bst.get_score(importance_type="weight")
+        self.importance_gain = self.bst.get_score(importance_type="gain")
 
         # save model
         self.bst.save_model(f"{self.model_name}.json")
@@ -194,11 +196,17 @@ class XGBoostVariant:
         print(f"TN={true_neg}\tFP={false_pos}")
         print(f"FN={false_neg}\tTP={true_pos}")
 
-        accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
-        print(f"Accuracy = {accuracy * 100 : .2f} %")
+        # accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
+        accuracy = accuracy_score(self.y_test, self.y_pred)
+        f1 = f1_score(self.y_test, self.y_pred)
+        auc = roc_auc_score(self.y_test, self.y_pred)
+
+        print(f"Accuracy = {accuracy * 100 : .3f} %")
+        print(f"f1 = {f1 * 100 : .3f} %")
+        print(f"ROC_AUC = {auc * 100 : .3f} %")
 
         num_feat = 100
-        importance = sorted(self.importance.items(), key=lambda item: item[1], reverse=True)
+        importance = sorted(self.importance_counts.items(), key=lambda item: item[1], reverse=True)
         print(f"Top {num_feat}/{len(importance)} features:")
         print(importance[:num_feat])
 
@@ -217,8 +225,12 @@ class XGBoostVariant:
         print("Done.")
 
     def write_importance(self, filename):
-        with open(filename, 'w') as importance_file:
-            for item in self.importance.items():
+        with open(filename + ".counts.csv", 'w') as importance_file:
+            for item in self.importance_counts.items():
+                importance_file.write(f"{item[0]}, {item[1]}\n")
+
+        with open(filename + ".gains.csv", 'w') as importance_file:
+            for item in self.importance_gain.items():
                 importance_file.write(f"{item[0]}, {item[1]}\n")
 
 
@@ -253,7 +265,7 @@ if __name__ == "__main__":
         clf.fit()
         clf.predict()
         clf.print_stats()
-        clf.write_importance(f"importance-{it}.csv")
+        clf.write_importance(f"importance-{it}")
         clf.set_weights(equal_weight=True)  # for next iteration
 
     clf.plot_trees(tree_name="weighted")
