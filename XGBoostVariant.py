@@ -41,9 +41,11 @@ class XGBoostVariant:
     features = None
     importance = None
 
-    def __init__(self, model_name="xgbtree", num_trees=10, max_depth=6, eta=.3, sample_bytree=250/6072853, method="hist"):
+    def __init__(self, model_name="xgbtree", num_trees=10, max_depth=6, eta=.3, early_stopping=50,
+                 sample_bytree=250/6072853, method="hist"):
         self.max_depth = max_depth
         self.eta = eta
+        self.early_stopping = early_stopping
         self.by_tree = sample_bytree
         self.random_state = 42
         self.model_name = model_name
@@ -153,7 +155,7 @@ class XGBoostVariant:
                              num_boost_round=self.num_trees,
                              evals=evals,
                              verbose_eval=10,
-                             early_stopping_rounds=50
+                             early_stopping_rounds=self.early_stopping
                              )
 
         # update number of trees in case of early stopping
@@ -232,11 +234,12 @@ if __name__ == "__main__":
     parser.add_argument("--eta", type=float, default=.3, help="Learning rate")
     parser.add_argument("--sample_bytree", type=float, default=2250/6072853, help="Sample by tree")
     parser.add_argument("--iterations", type=int, default=10, help="Number of iterations")
+    parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
 
     args = parser.parse_args()
 
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
-                         sample_bytree=args.sample_bytree, method=args.method)
+                         sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping)
     clf.read_datasets(args.csv, validation=args.validate, shuffle_features=args.shuffle_features)
 
     try:
