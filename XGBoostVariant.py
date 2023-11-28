@@ -25,6 +25,13 @@ def shuffle_columns(df, seed=42):
     return shuffled_df
 
 
+def read(select):
+    if select == None:
+        return None
+    features = pd.read_csv(select)
+    return features.iloc[:, 0]
+
+
 class XGBoostVariant:
     bst: Booster
     num_trees: int
@@ -60,14 +67,17 @@ class XGBoostVariant:
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, data_file, validation=False, feature_weights=None, shuffle_features=False):
+    def read_datasets(self, data_file, validation=False, feature_weights=None, shuffle_features=False, select=None):
         print("Loading data...", flush=True)
+        """
         data = pd.read_csv(data_file, low_memory=False,
                            true_values=["True"],  # no inferred dtype
                            false_values=["False"],  # no inferred dtype
                            index_col=0,  # first column as index
                            header=0  # first row as header
                            )
+        """
+        data = pd.read_parquet(data_file, columns=read(select))
 
         if shuffle_features:
             data = shuffle_columns(data, seed=self.random_state)
@@ -252,12 +262,14 @@ if __name__ == "__main__":
     parser.add_argument("--sample_bytree", type=float, default=2250/6072853, help="Sample by tree")
     parser.add_argument("--iterations", type=int, default=10, help="Number of iterations")
     parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
+    parser.add_argument("--select", type=str, default=None, help="List of feature to select")
+    parser.add_argument("--cluster", type=str, default=None, help="Cluster points for test/train")  # TODO
 
     args = parser.parse_args()
 
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping)
-    clf.read_datasets(args.csv, validation=args.validate, shuffle_features=args.shuffle_features)
+    clf.read_datasets(args.csv, validation=args.validate, shuffle_features=args.shuffle_features, select=args.select)
 
     try:
         os.mkdir(args.model_name)
