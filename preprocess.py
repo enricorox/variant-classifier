@@ -104,7 +104,7 @@ def main():
     to_remove = vcf_df.columns[[0, 1] + list(range(3, 9))]
     vcf_df = vcf_df.drop(columns=to_remove, axis=1)
 
-    print(vcf_df)
+    print()
 
     # attach corrected header
     vcf_df.columns = header
@@ -122,6 +122,12 @@ def main():
     # append phenotypes
     vcf_df[LABEL_PHENOTYPE] = phenotypes_df[LABEL_PHENOTYPE].values
     vcf_df[LABEL_CLUSTER] = phenotypes_df[LABEL_CLUSTER].values
+
+    columns = []
+    for col in vcf_df.columns:
+        col: str
+        columns.append(col.replace(".", "_"))
+    vcf_df.columns = columns
 
     print("Writing...", flush=True)
     # vcf_df.to_csv(main_csv_name)
