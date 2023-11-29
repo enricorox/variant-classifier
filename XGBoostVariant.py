@@ -25,11 +25,16 @@ def shuffle_columns(df, seed=42):
     return shuffled_df
 
 
-def read(select):
-    if select == None:
+def read_feature_list(selection_file):
+    if selection_file is None:
         return None
-    features = pd.read_csv(select)
-    return features.iloc[:, 0]
+    features = pd.read_csv(selection_file, header=None)
+    print(f"Read {len(features)} features to select")
+    features_to_extract = []
+    for feature in features.iloc[:, 0]:
+        features_to_extract.append(feature.replace(".", "_"))
+    # return features.iloc[:, 0]
+    return features_to_extract
 
 
 class XGBoostVariant:
@@ -50,7 +55,7 @@ class XGBoostVariant:
     importance_gain = None
 
     def __init__(self, model_name="default-model", num_trees=10, max_depth=6, eta=.3, early_stopping=50,
-                 sample_bytree=250/6072853, method="hist"):
+                 sample_bytree=250 / 6072853, method="hist"):
         self.max_depth = max_depth
         self.eta = eta
         self.early_stopping = early_stopping
@@ -69,15 +74,16 @@ class XGBoostVariant:
 
     def read_datasets(self, data_file, validation=False, feature_weights=None, shuffle_features=False, select=None):
         print("Loading data...", flush=True)
-        """
-        data = pd.read_csv(data_file, low_memory=False,
-                           true_values=["True"],  # no inferred dtype
-                           false_values=["False"],  # no inferred dtype
-                           index_col=0,  # first column as index
-                           header=0  # first row as header
-                           )
-        """
-        data = pd.read_parquet(data_file, columns=read(select))
+        if "csv" in data_file:
+            data = pd.read_csv(data_file, low_memory=False,
+                               true_values=["True"],  # no inferred dtype
+                               false_values=["False"],  # no inferred dtype
+                               index_col=0,  # first column as index
+                               header=0  # first row as header
+                               )
+        else:
+            data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list(select))
+            data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
 
         if shuffle_features:
             data = shuffle_columns(data, seed=self.random_state)
@@ -88,32 +94,43 @@ class XGBoostVariant:
             X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
                                                                 data[[self.label_name]],
                                                                 train_size=self.train_frac,
-                                                                random_state=self.random_state)
+                                                                random_state=self.random_state
+                                                                )
             X_test, X_validation, y_test, y_validation = train_test_split(X_test,
-                                                                            y_test,
-                                                                            train_size=.5,
-                                                                            random_state=self.random_state)
+                                                                          y_test,
+                                                                          train_size=.5,
+                                                                          random_state=self.random_state
+                                                                          )
         else:
             X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
                                                                 data[[self.label_name]],
                                                                 train_size=self.train_frac,
-                                                                random_state=self.random_state)
+                                                                random_state=self.random_state
+                                                                )
 
         print("Stats (train data):")
-        print(f"\tData points: {X_train.shape[0]}")
-        print(f"\t\tnumber of features: {X_train.shape[1]}")
-        print(f"\t\tlabel(0) counts: {(y_train[self.label_name] == 0).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: {(y_train[self.label_name] == 1).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
+        print(f"\tData points: "
+              f"{X_train.shape[0]}")
+        print(f"\t\tnumber of features: "
+              f"{X_train.shape[1]}")
+        print(f"\t\tlabel(0) counts: "
+              f"{(y_train[self.label_name] == 0).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: "
+              f"{(y_train[self.label_name] == 1).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
         print("Transforming into DMatrices...")
         self.dtrain = xgb.DMatrix(X_train, y_train)
         print()
 
         if validation:
             print("Stats (validation data):")
-            print(f"\tData points: {X_validation.shape[0]}")
-            print(f"\t\tnumber of features: {X_validation.shape[1]}")
-            print(f"\t\tlabel(0) counts: {(y_validation[self.label_name] == 0).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
-            print(f"\t\tlabel(1) counts: {(y_validation[self.label_name] == 1).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
+            print(f"\tData points: "
+                  f"{X_validation.shape[0]}")
+            print(f"\t\tnumber of features: "
+                  f"{X_validation.shape[1]}")
+            print(f"\t\tlabel(0) counts: "
+                  f"{(y_validation[self.label_name] == 0).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
+            print(f"\t\tlabel(1) counts: "
+                  f"{(y_validation[self.label_name] == 1).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
             print("Transforming into DMatrices...")
             self.dvalidation = xgb.DMatrix(X_validation, y_validation)
             print()
@@ -121,10 +138,14 @@ class XGBoostVariant:
             self.dvalidation = None
 
         print("Stats (test data):")
-        print(f"\tData points: {X_test.shape[0]}")
-        print(f"\t\tnumber of features: {X_train.shape[1]}")
-        print(f"\t\tlabel(0) counts: {(y_test[self.label_name] == 0).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: {(y_test[self.label_name] == 1).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
+        print(f"\tData points: "
+              f"{X_test.shape[0]}")
+        print(f"\t\tnumber of features: "
+              f"{X_train.shape[1]}")
+        print(f"\t\tlabel(0) counts: "
+              f"{(y_test[self.label_name] == 0).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: "
+              f"{(y_test[self.label_name] == 1).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
         print("Transforming into DMatrices...")
         self.y_test = y_test
         self.dtest = xgb.DMatrix(X_test)
@@ -252,24 +273,24 @@ class XGBoostVariant:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='XGBoost variant classifier')
     parser.add_argument("--model_name", type=str, default="default-model", help="Model name")
-    parser.add_argument("--csv", type=str, default="main.csv", help="Input csv file")
+    parser.add_argument("--data", type=str, default="main.csv", help="Input csv/parquet file")
     parser.add_argument("--method", type=str, default="hist", help="Tree method")
     parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
     parser.add_argument('--validate', default=False, action="store_true")
     parser.add_argument('--shuffle_features', default=False, action="store_true")
     parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
     parser.add_argument("--eta", type=float, default=.3, help="Learning rate")
-    parser.add_argument("--sample_bytree", type=float, default=2250/6072853, help="Sample by tree")
+    parser.add_argument("--sample_bytree", type=float, default=2250 / 6072853, help="Sample by tree")
     parser.add_argument("--iterations", type=int, default=10, help="Number of iterations")
     parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
     parser.add_argument("--select", type=str, default=None, help="List of feature to select")
-    parser.add_argument("--cluster", type=str, default=None, help="Cluster points for test/train")  # TODO
+    parser.add_argument("--cluster", type=str, default=None, help="List of cluster points for test/train")  # TODO
 
     args = parser.parse_args()
 
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping)
-    clf.read_datasets(args.csv, validation=args.validate, shuffle_features=args.shuffle_features, select=args.select)
+    clf.read_datasets(args.data, validation=args.validate, shuffle_features=args.shuffle_features, select=args.select)
 
     try:
         os.mkdir(args.model_name)
