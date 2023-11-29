@@ -18,4 +18,4 @@ source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
 cd ..
 
-srun python XGBoostVariant.py --model_name exact --csv main.csv --method exact --sample_bytree 1 --iterations 1 --early_stopping 50
+srun python XGBoostVariant.py --model_name exact --data main.parquet --method exact --sample_bytree 1 --iterations 1 --early_stopping 50 --select regions/narrow.csv
