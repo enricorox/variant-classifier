@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 
 import graphviz
 import pandas as pd
@@ -8,6 +9,7 @@ from numpy import ndarray
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from xgboost import Booster
+import pyarrow
 
 
 def shuffle_columns(df, seed=42):
@@ -35,6 +37,13 @@ def read_feature_list(selection_file):
         features_to_extract.append(feature.replace(".", "_"))
     # return features.iloc[:, 0]
     return features_to_extract
+
+
+def print_stats(X, y, label):
+    print(f"\tData points: {X.shape[0]}")
+    print(f"\t\tnumber of features: {X.shape[1]}")
+    print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
+    print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
 
 
 class XGBoostVariant:
@@ -73,9 +82,11 @@ class XGBoostVariant:
         print(f"Using XGBoost version {xgb.__version__}")
 
     def read_datasets(self, data_file, validation=False, feature_weights=None, shuffle_features=False, select=None):
+        start_t = time.time()
         print("Loading data...", flush=True)
         if "csv" in data_file:
             data = pd.read_csv(data_file, low_memory=False,
+                               usecols=lambda c: select is None or c in read_feature_list(select),
                                true_values=["True"],  # no inferred dtype
                                false_values=["False"],  # no inferred dtype
                                index_col=0,  # first column as index
@@ -109,28 +120,14 @@ class XGBoostVariant:
                                                                 )
 
         print("Stats (train data):")
-        print(f"\tData points: "
-              f"{X_train.shape[0]}")
-        print(f"\t\tnumber of features: "
-              f"{X_train.shape[1]}")
-        print(f"\t\tlabel(0) counts: "
-              f"{(y_train[self.label_name] == 0).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: "
-              f"{(y_train[self.label_name] == 1).sum() / len(y_train[self.label_name]) * 100 : .2f} %")
+        print_stats(X_train, y_train, self.label_name)
         print("Transforming into DMatrices...")
         self.dtrain = xgb.DMatrix(X_train, y_train)
         print()
 
         if validation:
             print("Stats (validation data):")
-            print(f"\tData points: "
-                  f"{X_validation.shape[0]}")
-            print(f"\t\tnumber of features: "
-                  f"{X_validation.shape[1]}")
-            print(f"\t\tlabel(0) counts: "
-                  f"{(y_validation[self.label_name] == 0).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
-            print(f"\t\tlabel(1) counts: "
-                  f"{(y_validation[self.label_name] == 1).sum() / len(y_validation[self.label_name]) * 100 : .2f} %")
+            print_stats(X_validation, y_validation, self.label_name)
             print("Transforming into DMatrices...")
             self.dvalidation = xgb.DMatrix(X_validation, y_validation)
             print()
@@ -138,14 +135,7 @@ class XGBoostVariant:
             self.dvalidation = None
 
         print("Stats (test data):")
-        print(f"\tData points: "
-              f"{X_test.shape[0]}")
-        print(f"\t\tnumber of features: "
-              f"{X_train.shape[1]}")
-        print(f"\t\tlabel(0) counts: "
-              f"{(y_test[self.label_name] == 0).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: "
-              f"{(y_test[self.label_name] == 1).sum() / len(y_test[self.label_name]) * 100 : .2f} %")
+        print_stats(X_test, y_test, self.label_name)
         print("Transforming into DMatrices...")
         self.y_test = y_test
         self.dtest = xgb.DMatrix(X_test)
@@ -156,6 +146,9 @@ class XGBoostVariant:
             print("Setting weights...")
             assert len(feature_weights) == self.dtrain.num_col()
             self.dtrain.set_info(feature_weights=feature_weights)
+
+        end_t = time.time()
+        print(f"Read time {end_t - start_t : .2f}s")
 
     def set_weights(self, weights=None, equal_weight=False):
         if weights is None:
@@ -268,6 +261,33 @@ class XGBoostVariant:
         with open(filename + ".gains.csv", 'w') as importance_file:
             for item in self.importance_gain.items():
                 importance_file.write(f"{item[0]}, {item[1]}\n")
+
+    def region_distribution(self):
+        narrow_file = "narrow.csv"
+        narrow_mock_hk_file = "Hk_mock_narr.csv"
+        narrow_mock_br_file = "Br_mock_narr.csv"
+        narrow_nvv_hk_file = "Hk_mock_narr.csv"
+        narrow_nvv_br_file = "Br_NNV_narr.csv"
+
+        broad_file = "broad.csv"
+        broad_mock_hk_file = "Hk_mock_broad.csv"
+        broad_mock_br_file = "Br_mock_broad.csv"
+        broad_nvv_hk_file = "Hk_mock_broad.csv"
+        broad_nvv_br_file = "Br_NNV_broad.csv"
+
+        all_narrow_file = [narrow_file, narrow_nvv_br_file, narrow_nvv_hk_file, narrow_mock_br_file,
+                           narrow_mock_hk_file]
+        all_broad_file = [broad_file, broad_nvv_br_file, broad_nvv_hk_file, broad_mock_br_file, broad_mock_hk_file]
+
+        def read_and_intersect(file_path, features: set):
+            df = pd.read_csv(file_path)
+            lst = df.iloc[:, 0].tolist()
+            return len(features.intersection(lst))
+
+        s = set(self.importance_counts.keys())
+        for b in all_broad_file + all_narrow_file:
+            num = read_and_intersect(b, s)
+            print(f"{b}: {num} ({num / len(s) * 100} %)")
 
 
 if __name__ == "__main__":
