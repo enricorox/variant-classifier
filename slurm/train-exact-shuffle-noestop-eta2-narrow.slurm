@@ -10,7 +10,7 @@
 # use many CPU if not using CUDA
 #SBATCH --cpus-per-task 32
 #SBATCH --partition allgroups
-#SBATCH --mem 500G
+#SBATCH --mem 200G
 # uncomment to use GPU
 ##SBATCH --gres=gpu:rtx
 
