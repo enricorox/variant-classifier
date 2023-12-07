@@ -27,7 +27,7 @@ def shuffle_columns(df, seed=42):
     return shuffled_df
 
 
-def read_feature_list(selection_file):
+def read_feature_list_parquet(selection_file):
     if selection_file is None:
         return None
     features = pd.read_csv(selection_file, header=None)
@@ -37,6 +37,14 @@ def read_feature_list(selection_file):
         features_to_extract.append(feature.replace(".", "_"))
     # return features.iloc[:, 0]
     return features_to_extract
+
+
+def read_feature_list(selection_file):
+    if selection_file is None:
+        return None
+    features = pd.read_csv(selection_file, header=None)
+    print(f"Read {len(features)} features to select")
+    return features.iloc[:, 0]
 
 
 def print_stats(X, y, label):
@@ -86,14 +94,17 @@ class XGBoostVariant:
         print("Loading data...", flush=True)
         if "csv" in data_file:
             data = pd.read_csv(data_file, low_memory=False,
-                               usecols=lambda c: select is None or c in read_feature_list(select),
+                               # usecols=lambda c: select is None or c in read_feature_list(select),
                                true_values=["True"],  # no inferred dtype
                                false_values=["False"],  # no inferred dtype
                                index_col=0,  # first column as index
                                header=0  # first row as header
                                )
+            selected_features = read_feature_list(select)
+            if selected_features is not None:
+                data = data[selected_features]
         else:
-            data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list(select))
+            data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select))
             data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
 
         if shuffle_features:
