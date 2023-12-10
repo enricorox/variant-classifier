@@ -102,9 +102,9 @@ class XGBoostVariant:
                                )
             selected_features = read_feature_list(select)
             if selected_features is not None:
-                data = data[selected_features]
+                data = data[selected_features + [self.label_name]]
         else:
-            data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select))
+            data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select) + [self.label_name])
             data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
 
         if shuffle_features:
