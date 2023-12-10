@@ -44,7 +44,7 @@ def read_feature_list(selection_file):
         return None
     features = pd.read_csv(selection_file, header=None)
     print(f"Read {len(features)} features to select")
-    return features.iloc[:, 0]
+    return features.iloc[:, 0].tolist()
 
 
 def print_stats(X, y, label):
