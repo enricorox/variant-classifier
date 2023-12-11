@@ -38,6 +38,14 @@ def read_feature_list_parquet(selection_file):
     # return features.iloc[:, 0]
     return features_to_extract
 
+def debug_list(L):
+    if L is None:
+        print("List is None!")
+        return
+
+    for i, n in enumerate(L):
+        if n is None:
+            print(f"Item {i} is None!")
 
 def read_feature_list(selection_file):
     if selection_file is None:
@@ -102,7 +110,9 @@ class XGBoostVariant:
                                )
             selected_features = read_feature_list(select)
             if selected_features is not None:
-                data = data[selected_features.append(self.label_name)]
+                selected_features.append(self.label_name)
+                debug_list(selected_features)
+                data = data[selected_features]
         else:
             data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select).append(self.label_name))
             data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
