@@ -111,7 +111,7 @@ class XGBoostVariant:
             selected_features = read_feature_list(select)
             if selected_features is not None:
                 selected_features.append(self.label_name)
-                debug_list(selected_features)
+                # debug_list(selected_features)
                 data = data[selected_features]
         else:
             data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select).append(self.label_name))
