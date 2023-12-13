@@ -1,4 +1,10 @@
+import os
+import sys
+
 import pandas as pd
+
+if len(sys.argv) == 2:
+    os.chdir(sys.argv[1])
 
 # List of CSV file paths
 regions_files = ["Br_mock_broad.csv", "Br_NNV_broad.csv", "Hk_mock_broad.csv", "Hk_NNV_broad.csv", "broad.csv",
