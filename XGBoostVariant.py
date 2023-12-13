@@ -62,6 +62,16 @@ def print_stats(X, y, label):
     print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
 
 
+def filter_chr3(selected_features):
+    # CAJNNU010000003.1:159217
+    filtered = []
+    for f in selected_features:
+        if f[13:15] == "03":
+            continue
+        filtered.append(f)
+    return filtered
+
+
 class XGBoostVariant:
     bst: Booster
     num_trees: int
@@ -111,11 +121,13 @@ class XGBoostVariant:
             selected_features = read_feature_list(select)
             if selected_features is not None:
                 selected_features.append(self.label_name)
-                # debug_list(selected_features)
+                if "nochr3" in data_file:
+                    selected_features = filter_chr3(selected_features)
                 data = data[selected_features]
         else:
-            data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select).append(self.label_name))
-            data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
+            # data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select).append(self.label_name))
+            # data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
+            raise Exception
 
         if shuffle_features:
             data = shuffle_columns(data, seed=self.random_state)
