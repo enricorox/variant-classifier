@@ -272,6 +272,17 @@ class XGBoostVariant:
         print(f"Top {num_feat}/{len(importance)} features:")
         print(importance[:num_feat])
 
+    def print_stats1(self):
+        print(f"method name\t{self.model_name}")
+        print(f"algorithm\t{self.method}")
+        print(f"training set\t{self.train_frac*100}%")
+        print(f"validation set\t?")
+        print(f"feature shuffle\t?")
+        print(f"feature sampling\t?")
+        print(f"feature peaks\t?")
+        print(f"early stopping\t?")
+        # TODO complete for sheet!
+
     def plot_trees(self, tree_set=None, tree_name=None):
         print("Printing trees...")
         if tree_set is None:
