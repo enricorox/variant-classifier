@@ -48,13 +48,4 @@ for file in regions_files:
     if file == "broad.csv":
         print()
 
-"""# Find the intersection of all lists
-print("Computing intersection...", flush=True)
-common_strings = set(lists_of_strings[0]).intersection(*lists_of_strings[1:])
 
-# Print or use the common strings
-print(f"Common Strings: {len(common_strings)}")
-with open("common.csv", "a") as f:
-    for s in common_strings:
-        f.write(f"{s}\n")
-"""
