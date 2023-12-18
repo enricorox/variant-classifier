@@ -16,6 +16,6 @@ common_strings = set(lists_of_strings[0]).intersection(*lists_of_strings[1:])
 
 # Print or use the common strings
 print(f"Common Strings: {len(common_strings)}")
-with open("common.csv", "a") as f:
+with open("common.csv", "w") as f:
     for s in common_strings:
         f.write(f"{s}\n")
