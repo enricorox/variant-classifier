@@ -12,7 +12,7 @@ from xgboost import Booster
 import pyarrow
 
 
-def shuffle_columns(df, seed=42):
+def shuffle_features(df, seed=42):
     # print(df)
     # Get the last column
     last_column = df.columns[-1]
@@ -107,7 +107,7 @@ class XGBoostVariant:
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, data_file, validation=False, feature_weights=None, shuffle_features=False, select=None):
+    def read_datasets(self, data_file, validation=False, feature_weights=None, do_shuffle_features=False, select=None):
         start_t = time.time()
         print("Loading data...", flush=True)
         if "csv" in data_file:
@@ -127,15 +127,15 @@ class XGBoostVariant:
         else:
             # data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select).append(self.label_name))
             # data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
-            raise Exception
+            raise Exception("Parquet read: to be implemented")
 
-        if shuffle_features:
-            data = shuffle_columns(data, seed=self.random_state)
+        if do_shuffle_features:
+            data = shuffle_features(data, seed=self.random_state)
 
         self.features = list(data.columns[:-1])
 
         if validation:
-            X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
+            X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
                                                                 data[[self.label_name]],
                                                                 train_size=self.train_frac,
                                                                 random_state=self.random_state
@@ -146,7 +146,7 @@ class XGBoostVariant:
                                                                           random_state=self.random_state
                                                                           )
         else:
-            X_train, X_test, y_train, y_test = train_test_split(data.drop(self.label_name, axis=1),
+            X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
                                                                 data[[self.label_name]],
                                                                 train_size=self.train_frac,
                                                                 random_state=self.random_state
@@ -354,7 +354,7 @@ if __name__ == "__main__":
 
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping)
-    clf.read_datasets(args.data, validation=args.validate, shuffle_features=args.shuffle_features, select=args.select)
+    clf.read_datasets(args.data, validation=args.validate, do_shuffle_features=args.shuffle_features, select=args.select)
 
     try:
         os.mkdir(args.model_name)
