@@ -36,7 +36,7 @@ features = set(counts.index)
 # Read from each CSV file and append the list to the main list
 print("Regions\tCounts\tWeights\tGains")
 for file in regions_files:
-    current_list = read_csv_and_get_list("../regions/" + file, column_idx)
+    current_list = read_csv_and_get_list("regions/" + file, column_idx)
     common_strings = features.intersection(current_list)
 
     grouped_gains = gains.loc[list(common_strings), 1]
