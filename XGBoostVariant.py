@@ -75,8 +75,8 @@ def filter_chr3(selected_features):
 def read_cluster_file(cluster_file):
     if cluster_file is None:
         return None
-    features = pd.read_csv(cluster_file, header=None)
-    clusters = [(features.iloc[:, 2] == 1).tolist(), (features.iloc[:, 2] == 2).tolist()]
+    points = pd.read_csv(cluster_file, header=0)
+    clusters = [(points.loc[:, "cluster"] == 1).tolist(), (points.loc[:, "cluster"] == 2).tolist()]
     print(f"clusters: {len(clusters[0])}, {len(clusters[1])}")
     return clusters
 
