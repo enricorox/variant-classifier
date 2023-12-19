@@ -72,6 +72,15 @@ def filter_chr3(selected_features):
     return filtered
 
 
+def read_cluster_file(cluster_file):
+    if cluster_file is None:
+        return None
+    features = pd.read_csv(cluster_file, header=None)
+    clusters = [(features.iloc[:, 2] == 1).tolist(), (features.iloc[:, 2] == 2).tolist()]
+    print(f"clusters: {len(clusters[0])}, {len(clusters[1])}")
+    return clusters
+
+
 class XGBoostVariant:
     bst: Booster
     num_trees: int
@@ -107,7 +116,7 @@ class XGBoostVariant:
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, data_file, validation=False, feature_weights=None, do_shuffle_features=False, select=None):
+    def read_datasets(self, data_file, validation=False, feature_weights=None, do_shuffle_features=False, select_file=None, cluster_file=None):
         start_t = time.time()
         print("Loading data...", flush=True)
         if "csv" in data_file:
@@ -118,7 +127,7 @@ class XGBoostVariant:
                                index_col=0,  # first column as index
                                header=0  # first row as header
                                )
-            selected_features = read_feature_list(select)
+            selected_features = read_feature_list(select_file)
             if selected_features is not None:
                 selected_features.append(self.label_name)
                 if "nochr3" in data_file:
@@ -134,23 +143,31 @@ class XGBoostVariant:
 
         self.features = list(data.columns[:-1])
 
-        if validation:
-            X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
-                                                                data[[self.label_name]],
-                                                                train_size=self.train_frac,
-                                                                random_state=self.random_state
-                                                                )
-            X_test, X_validation, y_test, y_validation = train_test_split(X_test,
-                                                                          y_test,
-                                                                          train_size=.5,
-                                                                          random_state=self.random_state
-                                                                          )
+        if cluster_file is None:
+            if validation:
+                X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
+                                                                    data[[self.label_name]],
+                                                                    train_size=self.train_frac,
+                                                                    random_state=self.random_state
+                                                                    )
+                X_test, X_validation, y_test, y_validation = train_test_split(X_test,
+                                                                              y_test,
+                                                                              train_size=.5,
+                                                                              random_state=self.random_state
+                                                                              )
+            else:
+                X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
+                                                                    data[[self.label_name]],
+                                                                    train_size=self.train_frac,
+                                                                    random_state=self.random_state
+                                                                    )
         else:
-            X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
-                                                                data[[self.label_name]],
-                                                                train_size=self.train_frac,
-                                                                random_state=self.random_state
-                                                                )
+            clusters = read_cluster_file(cluster_file)
+
+            X_train = data.iloc[clusters[0], :-1]
+            y_train = data.iloc[clusters[0], -1]
+            X_test = data.iloc[clusters[1], :-1]
+            y_test = data.iloc[clusters[1], -1]
 
         print("Stats (train data):")
         print_stats(X_train, y_train, self.label_name)
@@ -352,9 +369,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    print(args)
+
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping)
-    clf.read_datasets(args.data, validation=args.validate, do_shuffle_features=args.shuffle_features, select=args.select)
+    clf.read_datasets(args.data, validation=args.validate, do_shuffle_features=args.shuffle_features, select_file=args.select, cluster_file=args.cluster)
 
     try:
         os.mkdir(args.model_name)
