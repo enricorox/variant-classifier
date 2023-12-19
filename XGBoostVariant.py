@@ -47,6 +47,7 @@ def debug_list(L):
         if n is None:
             print(f"Item {i} is None!")
 
+
 def read_feature_list(selection_file):
     if selection_file is None:
         return None
@@ -75,7 +76,7 @@ def filter_chr3(selected_features):
 def read_cluster_file(cluster_file):
     if cluster_file is None:
         return None
-    points = pd.read_csv(cluster_file, header=0)
+    points = pd.read_csv(cluster_file, delimiter=" ", header=0)
     clusters = [(points.loc[:, "cluster"] == 1).tolist(), (points.loc[:, "cluster"] == 2).tolist()]
     print(f"clusters: {len(clusters[0])}, {len(clusters[1])}")
     return clusters
