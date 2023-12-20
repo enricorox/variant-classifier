@@ -122,7 +122,7 @@ class XGBoostVariant:
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, data_file, validation=False, feature_weights=None, do_shuffle_features=False, select_file=None, cluster_file=None):
+    def read_datasets(self, data_file, validation=False, feature_weights=None, do_shuffle_features=False, select_file=None, cluster_file=None, invc=False):
         start_t = time.time()
         print("Loading data...", flush=True)
         if "csv" in data_file:
@@ -169,11 +169,17 @@ class XGBoostVariant:
                                                                     )
         else:
             clusters = read_cluster_file(cluster_file)
+            if invc:
+                cluster_train = clusters[1]
+                cluster_test = clusters[0]
+            else:
+                cluster_train = clusters[0]
+                cluster_test = clusters[1]
 
-            X_train = data.iloc[clusters[0], :-1]
-            y_train = data.iloc[clusters[0], -1]
-            X_test = data.iloc[clusters[1], :-1]
-            y_test = data.iloc[clusters[1], -1]
+            X_train = data.iloc[cluster_train, :-1]
+            y_train = data.iloc[cluster_train, -1]
+            X_test = data.iloc[cluster_test, :-1]
+            y_test = data.iloc[cluster_test, -1]
 
         print("Stats (train data):")
         print_stats(X_train, y_train, self.label_name)
@@ -371,7 +377,8 @@ if __name__ == "__main__":
     parser.add_argument("--iterations", type=int, default=10, help="Number of iterations")
     parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
     parser.add_argument("--select", type=str, default=None, help="List of feature to select")
-    parser.add_argument("--cluster", type=str, default=None, help="List of cluster points for test/train")  # TODO
+    parser.add_argument("--cluster", type=str, default=None, help="List of cluster points for test/train")
+    parser.add_argument('--invc', default=False, action="store_true")
 
     args = parser.parse_args()
 
@@ -379,7 +386,7 @@ if __name__ == "__main__":
 
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping)
-    clf.read_datasets(args.data, validation=args.validate, do_shuffle_features=args.shuffle_features, select_file=args.select, cluster_file=args.cluster)
+    clf.read_datasets(args.data, validation=args.validate, do_shuffle_features=args.shuffle_features, select_file=args.select, cluster_file=args.cluster, invc=args.invc)
 
     try:
         os.mkdir(args.model_name)
