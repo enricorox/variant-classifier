@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name train-exact-shuffle-noestop-eta2-cluster
-#SBATCH --output logs/train-exact-shuffle-noestop-eta2-cluster.log
-#SBATCH --error logs/train-exact-shuffle-noestop-eta2-cluster.log
+#SBATCH --job-name train-exact-shuffle-noestop-eta2-cluster-invc
+#SBATCH --output logs/train-exact-shuffle-noestop-eta2-cluster-invc.log
+#SBATCH --error logs/train-exact-shuffle-noestop-eta2-cluster-invc.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
 #SBATCH
@@ -18,4 +18,4 @@ source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
 cd ..
 
-srun python XGBoostVariant.py --model_name exact-shuffle-noestop-eta2-cluster --shuffle_features --data main.csv --method exact --sample_bytree 1 --iterations 1 --num_trees 100 --eta 0.2 --cluster pheno_cluster.csv --invc
+srun python XGBoostVariant.py --model_name exact-shuffle-noestop-eta2-cluster-invc --shuffle_features --data main.csv --method exact --sample_bytree 1 --iterations 1 --num_trees 100 --eta 0.2 --cluster pheno_cluster.csv --invc
