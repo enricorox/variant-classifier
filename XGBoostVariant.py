@@ -38,15 +38,6 @@ def read_feature_list_parquet(selection_file):
     # return features.iloc[:, 0]
     return features_to_extract
 
-def debug_list(L):
-    if L is None:
-        print("List is None!")
-        return
-
-    for i, n in enumerate(L):
-        if n is None:
-            print(f"Item {i} is None!")
-
 
 def read_feature_list(selection_file):
     if selection_file is None:
@@ -59,12 +50,8 @@ def read_feature_list(selection_file):
 def print_stats(X, y, label):
     print(f"\tData points: {X.shape[0]}")
     print(f"\t\tnumber of features: {X.shape[1]}")
-    if isinstance(y, pd.DataFrame):
-        print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
-    else:
-        print(f"\t\tlabel(0) counts: {(y == 0).sum() / len(y) * 100 : .2f} %")
-        print(f"\t\tlabel(1) counts: {(y == 1).sum() / len(y) * 100 : .2f} %")
+    print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
+    print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
 
 
 def filter_chr3(selected_features):
@@ -177,9 +164,11 @@ class XGBoostVariant:
                 cluster_test = clusters[1]
 
             X_train = data.iloc[cluster_train, :-1]
-            y_train = data.iloc[cluster_train, -1]
+            y_train = data.iloc[cluster_train, -1]  # Series
+            y_train = pd.DataFrame(y_train)
             X_test = data.iloc[cluster_test, :-1]
-            y_test = data.iloc[cluster_test, -1]
+            y_test = data.iloc[cluster_test, -1]  # Series
+            y_test = pd.DataFrame(y_test)
 
         print("Stats (train data):")
         print_stats(X_train, y_train, self.label_name)
