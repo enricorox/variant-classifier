@@ -59,8 +59,12 @@ def read_feature_list(selection_file):
 def print_stats(X, y, label):
     print(f"\tData points: {X.shape[0]}")
     print(f"\t\tnumber of features: {X.shape[1]}")
-    print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
-    print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
+    if isinstance(y, pd.DataFrame):
+        print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
+    else:
+        print(f"\t\tlabel(0) counts: {(y == 0).sum() / len(y) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: {(y == 1).sum() / len(y) * 100 : .2f} %")
 
 
 def filter_chr3(selected_features):
@@ -77,7 +81,8 @@ def read_cluster_file(cluster_file):
     if cluster_file is None:
         return None
     points = pd.read_csv(cluster_file, delimiter=" ", header=0)
-    clusters = [(points.loc[:, "cluster"] == 1).tolist(), (points.loc[:, "cluster"] == 2).tolist()]
+    clusters = [points.index[points["cluster"] == 1],
+                points.index[points["cluster"] == 2]]
     print(f"clusters: {len(clusters[0])}, {len(clusters[1])}")
     return clusters
 
