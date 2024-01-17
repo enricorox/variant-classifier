@@ -7,7 +7,7 @@ path = "./"
 counts = {}
 gains = {}
 
-for file in glob.glob(path + "train-*/importance-0.gains.csv"):
+for file in glob.glob(path + "exact-shuffle-*/importance-0.gains.csv"):
     print(f"Reading file {file}...")
     df = pd.read_csv(file, index_col=0, usecols=["gains"])
     for e in df.index:
