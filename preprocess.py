@@ -46,6 +46,9 @@ LABEL_ID = "ID"
 LABEL_PHENOTYPE = "phenotype"
 LABEL_CLUSTER = "cluster"
 
+RESISTANT = "1"
+SUSCEPTIBLE = "2"
+
 CLUSTER_0 = "1"
 CLUSTER_1 = "2"
 
@@ -58,7 +61,11 @@ def main():
                                 skiprows=1, skipinitialspace=True,
                                 # true_values=[CLUSTER_1],
                                 # false_values=[CLUSTER_0],
-                                converters={LABEL_PHENOTYPE: lambda v: v == "2", LABEL_CLUSTER: lambda v: v == CLUSTER_1}
+                                # converters={LABEL_PHENOTYPE: lambda v: v == "2", LABEL_CLUSTER: lambda v: v == CLUSTER_1}
+                                converters={
+                                    LABEL_PHENOTYPE: lambda v: ord(v) - ord('0') - 1,
+                                    LABEL_CLUSTER: lambda v: ord(v) - ord('0') - 1
+                                    }
                                 )
 
     print("\tSorting...", flush=True)
@@ -92,8 +99,9 @@ def main():
                          # memory_map=True,
                          low_memory=False,
                          header=None,
-                         true_values=["0/1", "1/1"],  # mutations on one or both chromosomes
-                         false_values=["0/0"]  # no mutation at all
+                         # true_values=["0/1", "1/1"],  # mutations on one or both chromosomes
+                         # false_values=["0/0"]  # no mutation at all
+                         converters=lambda v: (v[0] == '1') + (v[2] == '1')
                          )
     print("Done.", flush=True)
 
@@ -123,16 +131,24 @@ def main():
     vcf_df[LABEL_PHENOTYPE] = phenotypes_df[LABEL_PHENOTYPE].values
     vcf_df[LABEL_CLUSTER] = phenotypes_df[LABEL_CLUSTER].values
 
-    columns = []
-    for col in vcf_df.columns:
-        col: str
-        columns.append(col.replace(".", "_"))
-    vcf_df.columns = columns
+    def to_parquet():
+        columns = []
+        for col in vcf_df.columns:
+            col: str
+            columns.append(col.replace(".", "_"))
+        vcf_df.columns = columns
 
-    print("Writing...", flush=True)
-    # vcf_df.to_csv(main_csv_name)
-    vcf_df.to_parquet(main_parquet_name)
-    print("Done.")
+        print("Writing...", flush=True)
+        # vcf_df.to_csv(main_csv_name)
+        vcf_df.to_parquet(main_parquet_name)
+        print("Done.")
+
+    def to_csv():
+        print("Writing...", flush=True)
+        vcf_df.to_csv(main_csv_name)
+        print("Done.")
+
+    to_csv()
     # ---
 
 
