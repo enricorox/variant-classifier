@@ -158,7 +158,7 @@ if __name__ == "__main__":
     vcf_file_name = "imputed_VNN_WGS_ALL.vcf"
     phenotypes_file_name = "pheno_cluster.csv"
     # output
-    main_csv_name = "main.csv"
+    main_csv_name = "main-012.csv"
     main_parquet_name = "main.parquet"
     add_csv_name = "add.csv"
     # ---
