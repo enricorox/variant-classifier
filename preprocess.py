@@ -101,7 +101,7 @@ def main():
                          header=None,
                          # true_values=["0/1", "1/1"],  # mutations on one or both chromosomes
                          # false_values=["0/0"]  # no mutation at all
-                         converters=lambda v: (v[0] == '1') + (v[2] == '1')
+                         converters={}.setdefault(lambda v: (v[0] == '1') + (v[2] == '1'))
                          )
     print("Done.", flush=True)
 
