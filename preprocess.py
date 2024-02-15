@@ -89,7 +89,7 @@ def main():
 
     print("\tCorrecting header...")
     vcf_header_df = pd.read_csv(vcf_file_name, delim_whitespace=True, skiprows=29, nrows=1, dtype=str, header=None)
-    header = [LABEL_ID]  # empty string for id column
+    header = [LABEL_ID]
     for x in vcf_header_df.loc[0][9:]:
         u = len(x) // 2
         assert x[u] == "_"
