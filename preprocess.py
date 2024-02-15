@@ -1,4 +1,6 @@
 #!/bin/env python
+import os
+
 import pandas as pd
 import pyarrow
 """
@@ -96,12 +98,10 @@ def main():
     print(f"\t\tHeader length: {len(header)}")
     print("\tReading whole file...", flush=True)
     vcf_df = pd.read_csv(vcf_file_name, sep="\t", skiprows=30, skipinitialspace=True,
-                         # memory_map=True,
                          low_memory=False,
                          header=None,
                          # true_values=["0/1", "1/1"],  # mutations on one or both chromosomes
                          # false_values=["0/0"]  # no mutation at all
-                         converters={}.setdefault(lambda v: (v[0] == '1') + (v[2] == '1'))
                          )
     print("Done.", flush=True)
 
@@ -149,6 +149,13 @@ def main():
         print("Done.")
 
     to_csv()
+
+    """
+    0/0 --> 0
+    0/1 --> 1
+    1/1 --> 2
+    """
+    os.system("sed -i 's/0\/0/0/g; s/0\/1/1/g; s/1\/1/2/g' main-012.csv")
     # ---
 
 
