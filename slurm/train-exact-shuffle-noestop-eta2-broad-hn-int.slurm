@@ -18,4 +18,4 @@ source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
 cd ..
 
-srun python XGBoostVariant.py --model_name exact-shuffle-noestop-eta2-broad-hn-int --shuffle_features --data main-012.csv --method exact --sample_bytree 1 --iterations 1 --num_trees 100 --eta 0.2 --select regions/Hk_NNV_broad.csv
+srun python XGBoostVariant.py --model_name exact-shuffle-noestop-eta2-broad-hn-int --shuffle_features --data datasets/main-012.csv --method exact --sample_bytree 1 --iterations 1 --num_trees 100 --eta 0.2 --select datasets/regions/Hk_NNV_broad.csv
