@@ -92,7 +92,7 @@ class XGBoostVariant:
     importance_gain = None
 
     def __init__(self, model_name="default-model", num_trees=10, max_depth=6, eta=.3, early_stopping=50,
-                 sample_bytree=250 / 6072853, method="hist"):
+                 sample_bytree=250 / 6072853, method="hist", objective="binary:hinge"):
         self.max_depth = max_depth
         self.eta = eta
         self.early_stopping = early_stopping
@@ -103,6 +103,7 @@ class XGBoostVariant:
         self.label_name = "phenotype"
         self.train_frac = .8
         self.method = method
+        self.objective = objective  # binary:logistic or reg:logistic
 
         if early_stopping is None:
             self.early_stopping = self.num_trees
@@ -115,8 +116,8 @@ class XGBoostVariant:
         if "csv" in data_file:
             data = pd.read_csv(data_file, low_memory=False,
                                # usecols=lambda c: select is None or c in read_feature_list(select),
-                               true_values=["True"],  # no inferred dtype
-                               false_values=["False"],  # no inferred dtype
+                               #true_values=["True"],  # no inferred dtype
+                               #false_values=["False"],  # no inferred dtype
                                index_col=0,  # first column as index
                                header=0  # first row as header
                                )
@@ -219,7 +220,7 @@ class XGBoostVariant:
             raise Exception("Need to load training datasets first!")
 
         if params is None:
-            params = {"verbosity": 1, "device": "cpu", "objective": "binary:hinge", "tree_method": self.method,
+            params = {"verbosity": 1, "device": "cpu", "objective": self.objective, "tree_method": self.method,
                       "colsample_bytree": self.by_tree, "seed": self.random_state,
                       "eta": self.eta, "max_depth": self.max_depth}
             # params["eval_metric"] = "auc"
@@ -367,14 +368,15 @@ if __name__ == "__main__":
     parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
     parser.add_argument("--select", type=str, default=None, help="List of feature to select")
     parser.add_argument("--cluster", type=str, default=None, help="List of cluster points for test/train")
-    parser.add_argument('--invc', default=False, action="store_true")
+    parser.add_argument('--invc', default=False, action="store_true", help="use cluster 2 for training and cluster 1 for testing")
+    parser.add_argument('--objective', default="binary:hinge", help="binary:hinge or binary:logistic or...")
 
     args = parser.parse_args()
 
     print(args)
 
     clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
-                         sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping)
+                         sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping, objective=args.objective)
     clf.read_datasets(args.data, validation=args.validate, do_shuffle_features=args.shuffle_features, select_file=args.select, cluster_file=args.cluster, invc=args.invc)
 
     try:
