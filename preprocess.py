@@ -167,8 +167,9 @@ def main():
 if __name__ == "__main__":
     # --- parameters
     # input
-    vcf_file_name = "imputed_VNN_WGS_ALL.vcf"
-    phenotypes_file_name = "pheno_cluster.csv"
+    dir = "datasets/"
+    vcf_file_name = dir + "imputed_VNN_WGS_ALL.vcf"
+    phenotypes_file_name = dir + "pheno_cluster.csv"
     # output
     main_csv_name = "main-012.csv"
     main_parquet_name = "main.parquet"
