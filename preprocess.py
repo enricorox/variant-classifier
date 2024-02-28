@@ -117,6 +117,11 @@ def main():
     # attach corrected header
     vcf_df.columns = header
 
+    # DEBUG
+    header_df = pd.DataFrame(header)
+    header_df.to_csv("header.csv")
+    exit()
+
     # sort individuals
     vcf_df = vcf_df.sort_index(axis=1)
 
