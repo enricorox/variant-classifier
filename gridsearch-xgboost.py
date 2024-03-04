@@ -2,7 +2,7 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import GridSearchCV, train_test_split
 
-data_file = "main-012.csv"
+data_file = "datasets/main-012.csv"
 data = pd.read_csv(data_file, low_memory=False,
                    index_col=0,  # first column as index
                    header=0  # first row as header
