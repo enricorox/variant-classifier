@@ -120,7 +120,7 @@ def main():
     # DEBUG
     header_df = pd.DataFrame(header)
     header_df.to_csv("header.csv")
-    exit()
+    # exit()
 
     # sort individuals
     vcf_df = vcf_df.sort_index(axis=1)
@@ -167,11 +167,11 @@ def main():
 if __name__ == "__main__":
     # --- parameters
     # input
-    dir = "datasets/"
-    vcf_file_name = dir + "imputed_VNN_WGS_ALL.vcf"
+    dir = "datasets/download/"
+    vcf_file_name = dir + "imputed_VNN_WGS_ALL-exclude-chr3.vcf"
     phenotypes_file_name = dir + "pheno_cluster.csv"
     # output
-    main_csv_name = "main-012.csv"
+    main_csv_name = "main-integer.csv"
     main_parquet_name = "main.parquet"
     add_csv_name = "add.csv"
     # ---
