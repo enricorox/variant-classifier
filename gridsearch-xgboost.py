@@ -1,12 +1,6 @@
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.datasets import load_wine
-
-# Carica il dataset di esempio (Boston Housing)
-data = load_wine()
-X = data.data
-y = data.target
 
 data_file = "main-012.csv"
 data = pd.read_csv(data_file, low_memory=False,
@@ -15,7 +9,7 @@ data = pd.read_csv(data_file, low_memory=False,
                    )
 y = data["phenotype"]
 data.drop(columns=["phenotype", "cluster"])
-X = data
+X = data.sample(frac=1, axis=1, random_state=42)
 
 # Dividi il dataset in set di addestramento e set di test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
