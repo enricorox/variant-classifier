@@ -171,7 +171,7 @@ if __name__ == "__main__":
     vcf_file_name = dir + "imputed_VNN_WGS_ALL-exclude-chr3.vcf"
     phenotypes_file_name = dir + "pheno_cluster.csv"
     # output
-    main_csv_name = "main-integer.csv"
+    main_csv_name = "main-integers.csv"
     main_parquet_name = "main.parquet"
     add_csv_name = "add.csv"
     # ---
