@@ -28,7 +28,8 @@ param_grid = {
 xgb_model = xgb.XGBRegressor()
 
 # Crea l'oggetto GridSearchCV
-grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, n_jobs=-1, scoring='neg_mean_squared_error', verbose=3)
+grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, n_jobs=1, pre_dispatch=1,
+                           scoring='neg_mean_squared_error', verbose=3)
 
 # Esegui la ricerca a griglia sull'insieme di addestramento
 grid_search.fit(X_train, y_train)
