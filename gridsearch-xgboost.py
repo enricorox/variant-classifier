@@ -17,11 +17,11 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Definisci la griglia degli iperparametri da testare
 param_grid = {
     'learning_rate': [0.01, 0.1, 0.2],
-    'max_depth': [3, 4, 5, 6],
+    'max_depth': [4, 5, 6],
     'min_child_weight': [1, 2, 3],
     # 'subsample': [0.7, 0.8, 0.9, 1],
-    'colsample_bytree': [0.7, 0.8, 0.9, 1],
-    'grow_policy': ['depthwise', 'lossguide']
+    'colsample_bytree': [0.7, 0.8, 1],
+    'grow_policy': ['lossguide', 'depthwise']
 }
 
 # Inizializza il regressore XGBoost
