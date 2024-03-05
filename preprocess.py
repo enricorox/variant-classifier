@@ -88,7 +88,11 @@ def main():
     print(f"Reading {vcf_file_name}...")
 
     print("\tCorrecting header...")
-    vcf_header_df = pd.read_csv(vcf_file_name, delim_whitespace=True, skiprows=29, nrows=1, dtype=str, header=None)
+    # include chr3
+    # skiprows = 30
+    # exclude chr3
+    skiprows = 28
+    vcf_header_df = pd.read_csv(vcf_file_name, delim_whitespace=True, skiprows=skiprows, nrows=1, dtype=str, header=None)
     header = [LABEL_ID]
     for x in vcf_header_df.loc[0][9:]:
         u = len(x) // 2
@@ -97,11 +101,8 @@ def main():
 
     print(f"\t\tHeader length: {len(header)}")
     print("\tReading whole file...", flush=True)
-    # include chr3
-    skiprows = 30
-    # exclude chr3
-    skiprows = 29
-    vcf_df = pd.read_csv(vcf_file_name, sep="\t", skiprows=skiprows, skipinitialspace=True,
+
+    vcf_df = pd.read_csv(vcf_file_name, sep="\t", skiprows=skiprows + 1, skipinitialspace=True,
                          low_memory=False,
                          header=None,
                          # true_values=["0/1", "1/1"],  # mutations on one or both chromosomes
