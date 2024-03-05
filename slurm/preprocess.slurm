@@ -11,8 +11,10 @@
 #SBATCH --partition allgroups
 #SBATCH --mem 500G
 
+set -e
+
 source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
-cd ..
+cd /nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier
 
 srun python preprocess.py
