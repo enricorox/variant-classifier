@@ -92,12 +92,16 @@ def main():
     header = [LABEL_ID]
     for x in vcf_header_df.loc[0][9:]:
         u = len(x) // 2
-        assert x[u] == "_"
+        assert x[u] == "_"  # PL4_H7_PL4_H7
         header.append(x[:u])
 
     print(f"\t\tHeader length: {len(header)}")
     print("\tReading whole file...", flush=True)
-    vcf_df = pd.read_csv(vcf_file_name, sep="\t", skiprows=30, skipinitialspace=True,
+    # include chr3
+    skiprows = 30
+    # exclude chr3
+    skiprows = 29
+    vcf_df = pd.read_csv(vcf_file_name, sep="\t", skiprows=skiprows, skipinitialspace=True,
                          low_memory=False,
                          header=None,
                          # true_values=["0/1", "1/1"],  # mutations on one or both chromosomes
