@@ -14,8 +14,10 @@
 # uncomment to use GPU
 ##SBATCH --gres=gpu:rtx
 
+set -e
+
 source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
-cd ..
+cd /nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier
 
 srun python gridsearch-xgboost.py
