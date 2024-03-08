@@ -14,7 +14,7 @@ print("Computing constant columns...")
 count = 0
 constant_cols = []
 for j in range(data.shape[1]):
-    if j % 100000:
+    if j % 100000 == 0:
         print(f"Columns read: {j}")
 
     first = data.ilo[0, j]
