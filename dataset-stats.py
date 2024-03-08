@@ -3,7 +3,7 @@ import pandas as pd
 data_file = "datasets/include-chr3/main-integers.csv"
 new_labels_file = "datasets/download/EBV.txt"
 
-print("Reading the datasets...")
+print("Reading the datasets...", flush=True)
 data = pd.read_csv(data_file, low_memory=False,
                    index_col=0,  # first column as index
                    header=0  # first row as header
@@ -15,9 +15,10 @@ new_label = pd.read_csv(new_labels_file, low_memory=False,
                         header=0  # first row as header
                         )
 
-print("Done.")
+print("Done.", flush=True)
 
-print(data.head())
+print(data)
+print(new_label)
 
 
 def find_constant_cols():
@@ -50,10 +51,10 @@ clusters = data["cluster"]
 ebv = new_label["ebv"]
 data.drop(columns=["phenotype", "cluster"], inplace=True)
 
-print("Writing labels to HDF5...")
-mortality.to_hdf("dataset.hdf5", key="mortality")
+print("Writing labels to HDF5...", flush=True)
+mortality.to_hdf("dataset.hdf5", key="mortalities")
 clusters.to_hdf("dataset.hdf5", key="clusters")
 ebv.to_hdf("dataset.hdf5", key="ebv")
 
-print("Writing features to HDF5...")
+print("Writing features to HDF5...", flush=True)
 data.to_hdf("datasets.hdf5", key="features")
