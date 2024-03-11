@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 data_file = "datasets/include-chr3/main-integers.csv"
@@ -46,10 +47,11 @@ def find_constant_cols():
 # NB: no constant cols found!
 # find_constant_cols()
 
-mortality = data["phenotype"]
-clusters = data["cluster"]
-ebv = new_label["ebv"]
+mortality = data["phenotype"].astype(np.int8)
+clusters = data["cluster"].astype(np.int8)
+ebv = new_label["ebv"].astype(np.float16)
 data.drop(columns=["phenotype", "cluster"], inplace=True)
+data = data.astype(np.int8)
 
 print("Writing labels to HDF5...", flush=True)
 mortality.to_hdf("dataset.hdf5", key="mortalities")
