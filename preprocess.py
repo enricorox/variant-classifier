@@ -165,7 +165,7 @@ def main():
     0/1 --> 1
     1/1 --> 2
     """
-    os.system("sed -i 's/0\/0/0/g; s/0\/1/1/g; s/1\/1/2/g' main-012.csv")
+    os.system(f"sed -i 's/0\/0/0/g; s/0\/1/1/g; s/1\/1/2/g' {main_csv_name}")
     # ---
 
 
