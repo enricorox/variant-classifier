@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-data_file = "datasets/include-chr3/main-integers.csv"
+data_file = "datasets/exclude-chr3/main-integers.csv"
 new_labels_file = "datasets/download/EBV.txt"
 
 print("Reading the datasets...", flush=True)
@@ -47,8 +47,8 @@ def find_constant_cols():
 # NB: no constant cols found!
 # find_constant_cols()
 
-mortality = data["phenotype"].astype(np.int8)
-clusters = data["cluster"].astype(np.int8)
+mortality = data["mortality"].astype(np.int8)
+clusters = data["clusters"].astype(np.int8)
 ebv = new_label["ebv"].astype(np.float16)
 data.drop(columns=["phenotype", "cluster"], inplace=True)
 data = data.astype(np.int8)
