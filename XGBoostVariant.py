@@ -3,45 +3,16 @@ import os
 import time
 
 import graphviz
+import numpy as np
 import pandas as pd
 import xgboost as xgb
 from numpy import ndarray
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from xgboost import Booster
-import pyarrow
-
-
-def shuffle_features(df, seed=42):
-    # print(df)
-    # Get the last column
-    last_column = df.columns[-1]
-
-    # Select all but the last columns and shuffle them
-    columns_to_shuffle = df.columns[:-1]
-    shuffled_df = df[columns_to_shuffle].sample(frac=1, axis=1, random_state=seed)
-
-    # Add the last column back to the shuffled DataFrame
-    shuffled_df[last_column] = df[last_column]
-    # print(shuffled_df)
-    return shuffled_df
-
-
-def read_feature_list_parquet(selection_file):
-    if selection_file is None:
-        return None
-    features = pd.read_csv(selection_file, header=None)
-    print(f"Read {len(features)} features to select")
-    features_to_extract = []
-    for feature in features.iloc[:, 0]:
-        features_to_extract.append(feature.replace(".", "_"))
-    # return features.iloc[:, 0]
-    return features_to_extract
 
 
 def read_feature_list(selection_file):
-    if selection_file is None:
-        return None
     features = pd.read_csv(selection_file, header=None)
     print(f"Read {len(features)} features to select")
     return features.iloc[:, 0].tolist()
@@ -54,22 +25,10 @@ def print_stats(X, y, label):
     print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
 
 
-def filter_chr3(selected_features):
-    # CAJNNU010000003.1:159217
-    filtered = []
-    for f in selected_features:
-        if f[13:15] == "03":
-            continue
-        filtered.append(f)
-    return filtered
-
-
 def read_cluster_file(cluster_file):
-    if cluster_file is None:
-        return None
-    points = pd.read_csv(cluster_file, delimiter=" ", header=0)
-    clusters = [points.index[points["cluster"] == 1],
-                points.index[points["cluster"] == 2]]
+    points = pd.read_csv(cluster_file, header=0, index_col=0)
+    clusters = [points.index[points["cluster"] == 0],
+                points.index[points["cluster"] == 1]]
     print(f"clusters: {len(clusters[0])}, {len(clusters[1])}")
     return clusters
 
@@ -91,8 +50,8 @@ class XGBoostVariant:
     importance_counts = None
     importance_gain = None
 
-    def __init__(self, model_name="default-model", num_trees=10, max_depth=6, eta=.3, early_stopping=50,
-                 sample_bytree=250 / 6072853, method="hist", objective="binary:hinge"):
+    def __init__(self, model_name, target, num_trees, max_depth, eta, early_stopping,
+                 sample_bytree, method, objective):
         self.max_depth = max_depth
         self.eta = eta
         self.early_stopping = early_stopping
@@ -100,7 +59,7 @@ class XGBoostVariant:
         self.random_state = 42
         self.model_name = model_name
         self.num_trees = num_trees
-        self.label_name = "phenotype"
+        self.target = target
         self.train_frac = .8
         self.method = method
         self.objective = objective  # binary:logistic or reg:logistic
@@ -110,37 +69,42 @@ class XGBoostVariant:
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, data_file, validation=False, feature_weights=None, do_shuffle_features=False, select_file=None, cluster_file=None, invc=False):
+    def read_datasets(self, dataset_dir, validation=False, do_shuffle_features=False, selected_features_file=None, cluster_file=None, invc=False):
         start_t = time.time()
-        print("Loading data...", flush=True)
-        if "csv" in data_file:
-            data = pd.read_csv(data_file, low_memory=False,
-                               # usecols=lambda c: select is None or c in read_feature_list(select),
-                               #true_values=["True"],  # no inferred dtype
-                               #false_values=["False"],  # no inferred dtype
-                               index_col=0,  # first column as index
-                               header=0  # first row as header
-                               )
-            selected_features = read_feature_list(select_file)
-            if selected_features is not None:
-                selected_features.append(self.label_name)
-                if "nochr3" in data_file:
-                    selected_features = filter_chr3(selected_features)
-                data = data[selected_features]
-        else:
-            # data = pd.read_parquet(data_file, engine="pyarrow", columns=read_feature_list_parquet(select).append(self.label_name))
-            # data = data.drop(labels="cluster", errors="ignore", axis=1)  # TODO
-            raise Exception("Parquet read: to be implemented")
+        features_file = dataset_dir + "features.csv"
+        target_file = dataset_dir + f"{self.target}.csv"
+        selected_features_file = dataset_dir + selected_features_file
+        cluster_file = dataset_dir + cluster_file
+
+        print("Loading features...", flush=True)
+        data = pd.read_csv(features_file, low_memory=False,
+                           index_col=0,  # first column as index
+                           header=0  # first row as header
+                           ).astype(np.int8)
+        print("Done.", flush=True)
+
+        if selected_features_file is not None:
+            print("Selecting features...", flush=True)
+            selected_features = read_feature_list(selected_features_file)
+            data = data[selected_features]
+            print("Done.", flush=True)
 
         if do_shuffle_features:
-            data = shuffle_features(data, seed=self.random_state)
+            print("Shuffling features...", flush=True)
+            data = data.sample(frac=1, axis=1, random_state=self.random_state)
+            print("Done.", flush=True)
 
-        self.features = list(data.columns[:-1])
+        self.features = list(data.columns)
 
+        print("Reading targets...", flush=True)
+        labels = pd.read_csv(target_file, header=0, index_col=0)
+        print("Done.", flush=True)
+
+        print("Splitting the datasets...", flush=True)
         if cluster_file is None:
             if validation:
-                X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
-                                                                    data[[self.label_name]],
+                X_train, X_test, y_train, y_test = train_test_split(data,
+                                                                    labels,
                                                                     train_size=self.train_frac,
                                                                     random_state=self.random_state
                                                                     )
@@ -150,8 +114,8 @@ class XGBoostVariant:
                                                                               random_state=self.random_state
                                                                               )
             else:
-                X_train, X_test, y_train, y_test = train_test_split(data.drop(columns=self.label_name),
-                                                                    data[[self.label_name]],
+                X_train, X_test, y_train, y_test = train_test_split(data,
+                                                                    labels,
                                                                     train_size=self.train_frac,
                                                                     random_state=self.random_state
                                                                     )
@@ -164,45 +128,49 @@ class XGBoostVariant:
                 cluster_train = clusters[0]
                 cluster_test = clusters[1]
 
-            X_train = data.iloc[cluster_train, :-1]
-            y_train = data.iloc[cluster_train, -1]  # Series
+            X_train = data.iloc[cluster_train, :]
+            y_train = labels.iloc[cluster_train]  # Series
             y_train = pd.DataFrame(y_train)
-            X_test = data.iloc[cluster_test, :-1]
-            y_test = data.iloc[cluster_test, -1]  # Series
+
+            X_test = data.iloc[cluster_test, :]
+            y_test = labels.iloc[cluster_test]  # Series
             y_test = pd.DataFrame(y_test)
+        print("Done.\n", flush=True)
 
         print("Stats (train data):")
-        print_stats(X_train, y_train, self.label_name)
-        print("Transforming into DMatrices...")
+        print_stats(X_train, y_train, self.target)
+        print("Transforming X_train into DMatrices...")
         self.dtrain = xgb.DMatrix(X_train, y_train)
         print()
 
         if validation:
             print("Stats (validation data):")
-            print_stats(X_validation, y_validation, self.label_name)
-            print("Transforming into DMatrices...")
+            print_stats(X_validation, y_validation, self.target)
+            print("Transforming X_validation into DMatrices...")
             self.dvalidation = xgb.DMatrix(X_validation, y_validation)
             print()
         else:
             self.dvalidation = None
 
         print("Stats (test data):")
-        print_stats(X_test, y_test, self.label_name)
-        print("Transforming into DMatrices...")
+        print_stats(X_test, y_test, self.target)
+        print("Transforming X_test into DMatrices...")
         self.y_test = y_test
         self.dtest = xgb.DMatrix(X_test)
 
         print()
 
-        if feature_weights is not None:
-            print("Setting weights...")
-            assert len(feature_weights) == self.dtrain.num_col()
-            self.dtrain.set_info(feature_weights=feature_weights)
-
         end_t = time.time()
         print(f"Read time {end_t - start_t : .2f}s")
 
     def set_weights(self, weights=None, equal_weight=False):
+        # feature weights TODO fix random order with dictionary ow weights!!!
+        """
+        if feature_weights is not None:
+            print("Setting weights...")
+            assert len(feature_weights) == self.dtrain.num_col()
+            self.dtrain.set_info(feature_weights=feature_weights)
+        """
         if weights is None:
             weights = self.importance_counts
 
@@ -221,8 +189,10 @@ class XGBoostVariant:
 
         if params is None:
             params = {"verbosity": 1, "device": "cpu", "objective": self.objective, "tree_method": self.method,
-                      "colsample_bytree": self.by_tree, "seed": self.random_state,
+                      "seed": self.random_state,
                       "eta": self.eta, "max_depth": self.max_depth}
+            if self.by_tree < 1:
+                params["colsample_bytree"] = self.by_tree
             # params["eval_metric"] = "auc"
 
         if evals is None:
@@ -270,9 +240,9 @@ class XGBoostVariant:
         false_neg = conf_mat[1][0]
         false_pos = conf_mat[0][1]
 
-        assert (true_pos + false_neg) == sum(self.y_test[self.label_name])
-        assert (true_neg + false_pos) == len(self.y_test[self.label_name]) - sum(self.y_test[self.label_name])
-        assert (true_neg + true_pos + false_neg + false_pos) == len(self.y_test[self.label_name])
+        assert (true_pos + false_neg) == sum(self.y_test[self.target])
+        assert (true_neg + false_pos) == len(self.y_test[self.target]) - sum(self.y_test[self.target])
+        assert (true_neg + true_pos + false_neg + false_pos) == len(self.y_test[self.target])
 
         print(f"TN={true_neg}\tFP={false_pos}")
         print(f"FN={false_neg}\tTP={true_pos}")
@@ -356,33 +326,36 @@ class XGBoostVariant:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='XGBoost variant classifier')
     parser.add_argument("--model_name", type=str, default="default-model", help="Model name")
-    parser.add_argument("--data", type=str, default="main.csv", help="Input csv/parquet file")
-    parser.add_argument("--method", type=str, default="hist", help="Tree method")
-    parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
-    parser.add_argument('--validate', default=False, action="store_true")
-    parser.add_argument('--shuffle_features', default=False, action="store_true")
-    parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
-    parser.add_argument("--eta", type=float, default=.3, help="Learning rate")
-    parser.add_argument("--sample_bytree", type=float, default=2250 / 6072853, help="Sample by tree")
-    parser.add_argument("--iterations", type=int, default=10, help="Number of iterations")
-    parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
+    parser.add_argument("--dataset", type=str, default="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/", help="Features csv file")
+    parser.add_argument("--target", type=str, default="mortality", help="Target csv file")
     parser.add_argument("--select", type=str, default=None, help="List of feature to select")
     parser.add_argument("--cluster", type=str, default=None, help="List of cluster points for test/train")
-    parser.add_argument('--invc', default=False, action="store_true", help="use cluster 2 for training and cluster 1 for testing")
+    parser.add_argument('--invc', default=False, action="store_true",
+                        help="use cluster 2 for training and cluster 1 for testing")
+
+    parser.add_argument("--method", type=str, default="exact", help="Tree method")
+    parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
+    parser.add_argument('--validate', default=False, action="store_true")
+    parser.add_argument('--shuffle_features', default=True, action="store_true")
+    parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
+    parser.add_argument("--eta", type=float, default=.2, help="Learning rate")
+    parser.add_argument("--sample_bytree", type=float, default=1, help="Sample by tree")
+    parser.add_argument("--iterations", type=int, default=1, help="Number of iterations")
+    parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
     parser.add_argument('--objective', default="binary:hinge", help="binary:hinge or binary:logistic or...")
 
     args = parser.parse_args()
 
     print(args)
 
-    clf = XGBoostVariant(model_name=args.model_name, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
+    clf = XGBoostVariant(model_name=args.model_name, target=args.target, num_trees=args.num_trees, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, method=args.method, early_stopping=args.early_stopping, objective=args.objective)
-    clf.read_datasets(args.data, validation=args.validate, do_shuffle_features=args.shuffle_features, select_file=args.select, cluster_file=args.cluster, invc=args.invc)
+    clf.read_datasets(args.dataset, validation=args.validate, do_shuffle_features=args.shuffle_features, selected_features_file=args.select, cluster_file=args.cluster, invc=args.invc)
 
     try:
         os.mkdir(args.model_name)
     except FileExistsError:
-        pass
+        print(f"Warning: overwriting existing files in {args.model_name}")
     os.chdir(args.model_name)
 
     for it in range(args.iterations):
