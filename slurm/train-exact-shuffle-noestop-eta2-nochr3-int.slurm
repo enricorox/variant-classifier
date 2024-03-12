@@ -20,4 +20,4 @@ source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
 
 cd /nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier
 
-srun python XGBoostVariant.py --model_name exact-shuffle-noestop-eta2-nochr3-int --shuffle_features --data datasets/exclude-chr3/main-integers.csv --method exact --sample_bytree 1 --iterations 1 --num_trees 100 --eta 0.2
+srun python XGBoostVariant.py --model_name exact-shuffle-noestop-eta2-nochr3-int --dataset datasets/exclude-chr3/
