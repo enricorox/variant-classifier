@@ -69,7 +69,7 @@ class XGBoostVariant:
 
         print(f"Using XGBoost version {xgb.__version__}")
 
-    def read_datasets(self, dataset_dir, validation=False, do_shuffle_features=False, selected_features_file=None, cluster_file=None, invc=False):
+    def read_datasets(self, dataset_dir, validation=False, do_shuffle_features=False, selected_features_file="", cluster_file="", invc=False):
         start_t = time.time()
         features_file = dataset_dir + "features.csv"
         target_file = dataset_dir + f"{self.target}.csv"
