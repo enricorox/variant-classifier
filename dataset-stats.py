@@ -48,7 +48,7 @@ def find_constant_cols():
 # find_constant_cols()
 
 mortality = data["phenotype"].astype(np.int8)
-clusters = data["clusters"].astype(np.int8)
+clusters = data["cluster"].astype(np.int8)
 ebv = new_label["ebv"].astype(np.float16)
 data.drop(columns=["phenotype", "cluster"], inplace=True)
 data = data.astype(np.int8)
