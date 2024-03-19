@@ -32,6 +32,8 @@ target_ex="${dataset_folder}/exclude-chr3/mortality.csv"
 regions=("Br_mock_broad.csv" "Br_NNV_broad.csv" "Hk_mock_broad.csv" "Hk_NNV_broad.csv" "broad.csv"
                "Br_mock_narr.csv" "Br_NNV_narr.csv" "Hk_mock_narr.csv" "Hk_NNV_narr.csv" "narrow.csv")
 
+set +e
+
 for region in "${regions[@]}"; do
   echo
   echo "***STARTING $region (EXCLUDE CHR3)***"
