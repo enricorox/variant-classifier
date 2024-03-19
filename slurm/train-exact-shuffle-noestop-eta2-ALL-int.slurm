@@ -38,13 +38,13 @@ for region in "${regions[@]}"; do
   echo
   echo "***STARTING $region (EXCLUDE CHR3)***"
   echo
-  srun python xgbclassifier.py --model_name exact-shuffle-noestop-eta2-nochr3-int --dataset $dataset_ex --target $target_ex --select $dataset_folder/exclude-chr3/regions/"$region"
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-int" --dataset $dataset_ex --target $target_ex --select $dataset_folder/exclude-chr3/regions/"$region"
 done
 
 for region in "${regions[@]}"; do
   echo
   echo "***STARTING $region (INCLUDE CHR3)***"
   echo
-  srun python xgbclassifier.py --model_name exact-shuffle-noestop-eta2-nochr3-int --dataset $dataset_in --target $target_in --select $dataset_folder/include-chr3/regions/"$region"
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2${region}-int" --dataset $dataset_in --target $target_in --select $dataset_folder/include-chr3/regions/"$region"
 done
 
