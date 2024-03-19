@@ -366,6 +366,7 @@ class XGBoostVariant:
             stats.write("\n")
 
             stats.write(f"#features,{self.num_features}\n")
+            stats.write(f"accuracy,{self.accuracy}\n")
             stats.write(f"f1,{self.f1}\n")
             stats.write(f"ROC AUC,{self.auc}\n")
             stats.write(f"best iteration,{self.best_it}\n")
