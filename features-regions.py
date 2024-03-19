@@ -11,7 +11,7 @@ regions_files = ["Br_mock_broad.csv", "Br_NNV_broad.csv", "Hk_mock_broad.csv", "
                  "Br_mock_narr.csv", "Br_NNV_narr.csv", "Hk_mock_narr.csv", "Hk_NNV_narr.csv", "narrow.csv"]
 counts_file = "importance-0.counts.csv"
 gains_file = "importance-0.gains.csv"
-
+data_ensemble_file = "data_ensemble.csv"
 
 # regions_files = ["broad.csv"]
 # features_file = "regions/Hk_NNV_broad.csv"
@@ -48,4 +48,20 @@ for file in regions_files:
     if file == "broad.csv":
         print()
 
+data_ensemble = pd.read_csv(data_ensemble_file, index_col=0, header=0)
+ensemble_features = list(features.intersection(data_ensemble.index.values))
+data_ensemble = data_ensemble.loc[ensemble_features, :]
+data_ensemble["gain"] = gains.loc[ensemble_features, :]
+data_ensemble.sort_values(by="gain")
+data_ensemble.to_csv("ensemble.csv")
 
+print(f"#features in the ensemble: {len(ensemble_features)}")
+
+if len(ensemble_features) > 0:
+    info_funct = data_ensemble["funct"].value_counts()
+    info_n_tissue = data_ensemble["n_tissue"].value_counts()
+
+    print(info_funct)
+    print(info_n_tissue)
+else:
+    print("No features in the data ensemble!!!")
