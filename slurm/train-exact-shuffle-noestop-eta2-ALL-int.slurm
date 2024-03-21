@@ -22,29 +22,25 @@ base_folder="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier"
 
 cd $base_folder
 
-dataset_folder=${base_folder}/datasets
-dataset_in="${dataset_folder}/include-chr3/features.csv"
-dataset_ex="${dataset_folder}/exclude-chr3/features.csv"
-
-target_in="${dataset_folder}/include-chr3/mortality.csv"
-target_ex="${dataset_folder}/exclude-chr3/mortality.csv"
+dataset_in="${dataset_folder}/datasets/include-chr3/"
+dataset_ex="${dataset_folder}/datasets/exclude-chr3/"
 
 regions=("Br_mock_broad.csv" "Br_NNV_broad.csv" "Hk_mock_broad.csv" "Hk_NNV_broad.csv" "broad.csv"
                "Br_mock_narr.csv" "Br_NNV_narr.csv" "Hk_mock_narr.csv" "Hk_NNV_narr.csv" "narrow.csv")
-
-set +e
 
 for region in "${regions[@]}"; do
   echo
   echo "***STARTING $region (EXCLUDE CHR3)***"
   echo
-  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-int" --dataset $dataset_ex --target $target_ex --select $dataset_folder/exclude-chr3/regions/"$region"
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-int" \
+    --dataset "${dataset_ex}/features.csv" --target "${dataset_ex}/mortality.csv" --select "${dataset_ex}/regions/${region}"
 done
 
 for region in "${regions[@]}"; do
   echo
   echo "***STARTING $region (INCLUDE CHR3)***"
   echo
-  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2${region}-int" --dataset $dataset_in --target $target_in --select $dataset_folder/include-chr3/regions/"$region"
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-${region}-int" \
+    --dataset "${dataset_in}/features.csv" --target "${dataset_in}/mortality.csv" --select "${dataset_in}/regions/${region}"
 done
 
