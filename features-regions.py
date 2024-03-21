@@ -9,7 +9,7 @@ if len(sys.argv) == 2:
 # List of CSV file paths
 regions_files = ["Br_mock_broad.csv", "Br_NNV_broad.csv", "Hk_mock_broad.csv", "Hk_NNV_broad.csv", "broad.csv",
                  "Br_mock_narr.csv", "Br_NNV_narr.csv", "Hk_mock_narr.csv", "Hk_NNV_narr.csv", "narrow.csv"]
-counts_file = "importance-0.counts.csv"
+counts_file = "importance-0.weights.csv"
 gains_file = "importance-0.gains.csv"
 data_ensemble_file = "data_ensemble.csv"
 
