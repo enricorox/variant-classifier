@@ -78,26 +78,25 @@ def group_by_region(weights, gains, regions_folder):
 def data_ensemble(gains, data_ensemble_file):
     features = set(gains.index.values)
 
-    data_ensemble = pd.read_csv(data_ensemble_file, index_col=0, header=0)
-    ensemble_features = list(features.intersection(data_ensemble.index.values))
-    print(f"#features in the ensemble: {len(ensemble_features)}")
+    ensemble_ensemble = pd.read_csv(data_ensemble_file, index_col=0, header=0)
+    intersection_features = list(features.intersection(ensemble_ensemble.index.values))
+    print(f"#features in the ensemble: {len(intersection_features)}")
 
-    data_ensemble = data_ensemble.loc[ensemble_features, :]
-    data_ensemble["gain"] = gains.loc[ensemble_features, "gain"]
-    data_ensemble.sort_values(by="gain", inplace=True)
-    data_ensemble.to_csv("ensemble.csv")
+    ensemble_ensemble = ensemble_ensemble.loc[intersection_features, :]
+    ensemble_ensemble["gain"] = gains.loc[intersection_features, "gain"]
+    ensemble_ensemble.sort_values(by="gain", inplace=True)
+    ensemble_ensemble.to_csv("ensemble.csv")
 
-
-    if len(ensemble_features) > 0:
-        info_funct = data_ensemble["funct"].value_counts()
-        info_n_tissue = data_ensemble["n_tissue"].value_counts()
+    if len(intersection_features) > 0:
+        info_funct = ensemble_ensemble["funct"].value_counts()
+        info_n_tissue = ensemble_ensemble["n_tissue"].value_counts()
 
         print(info_funct)
         print(info_n_tissue)
-        return info_funct, info_n_tissue
+        return intersection_features, info_funct, info_n_tissue
     else:
         print("No features in the data ensemble!!!")
-        return pd.DataFrame(), pd.DataFrame()
+        return intersection_features, pd.DataFrame(), pd.DataFrame()
 
 
 class XGBoostVariant:
@@ -401,15 +400,16 @@ class XGBoostVariant:
                 stats.write(f"{peak},{counts[peak]},{weights[peak]},{gains[peak]}\n")
             stats.write("\n")
 
-            info_funct, info_n_tissue = data_ensemble(gains=pd.DataFrame(self.importance_gains, index=pd.Index(["gain"])).T, data_ensemble_file=self.data_ensemble_file)
+            intersection_features, info_funct, info_n_tissue = data_ensemble(gains=pd.DataFrame(self.importance_gains, index=pd.Index(["gain"])).T, data_ensemble_file=self.data_ensemble_file)
+            stats.write(f"features in the ensemble,{len(intersection_features)}\n")
             stats.write("funct,count\n")
-            for i in range(len(info_funct)):
-                stats.write(f"{info_funct.iloc[i, 0]},{info_funct.iloc[i, 1]}")
+            for i in info_funct.index:
+                stats.write(f"{i},{info_funct[i]}\n")
             stats.write("\n")
 
             stats.write("n_tissue,count\n")
-            for i in range(len(info_n_tissue)):
-                stats.write(f"{info_n_tissue.iloc[i, 0]},{info_n_tissue.iloc[i, 1]}")
+            for i in info_n_tissue.index:
+                stats.write(f"{i},{info_n_tissue[i]}\n")
             stats.write("\n")
 
             k = 10
