@@ -84,7 +84,7 @@ def data_ensemble(gains, data_ensemble_file):
 
     ensemble_ensemble = ensemble_ensemble.loc[intersection_features, :]
     ensemble_ensemble["gain"] = gains.loc[intersection_features, "gain"]
-    ensemble_ensemble.sort_values(by="gain", inplace=True)
+    ensemble_ensemble.sort_values(by="gain", inplace=True, ascending=False)
     ensemble_ensemble.to_csv("ensemble.csv")
 
     if len(intersection_features) > 0:
@@ -369,7 +369,7 @@ class XGBoostVariant:
             stats.write(f"trees,{self.num_trees}\n")
             stats.write(f"eta,{self.eta}\n")
             stats.write(f"max depth,{self.max_depth}\n")
-            stats.write(f"grow_policy,{self.grow_policy}")
+            stats.write(f"grow_policy,{self.grow_policy}\n")
             stats.write(f"parallel trees,{self.num_parallel_trees}\n")
 
             stats.write("\n")
