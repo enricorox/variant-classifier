@@ -22,8 +22,8 @@ base_folder="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier"
 
 cd $base_folder
 
-dataset_in="${dataset_folder}/datasets/include-chr3/"
-dataset_ex="${dataset_folder}/datasets/exclude-chr3/"
+dataset_in="${base_folder}/datasets/include-chr3/"
+dataset_ex="${base_folder}/datasets/exclude-chr3/"
 
 regions=("Br_mock_broad.csv" "Br_NNV_broad.csv" "Hk_mock_broad.csv" "Hk_NNV_broad.csv" "broad.csv"
                "Br_mock_narr.csv" "Br_NNV_narr.csv" "Hk_mock_narr.csv" "Hk_NNV_narr.csv" "narrow.csv")
