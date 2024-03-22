@@ -39,10 +39,8 @@ def group_by_chromosome(weigths, gains):
     return counts_group, weigths_group, gains_group
 
 
-def group_by_region(weights, gains,
-                    regions_folder="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/exclude-chr3/regions/"):
+def group_by_region(weights, gains, regions_folder):
     # List of CSV file paths
-    regions_folder = "/home/enrico/PycharmProjects/variant-classifier/datasets/exclude-chr3/regions/"
     regions_files = ["Br_mock_broad.csv", "Br_NNV_broad.csv", "Hk_mock_broad.csv", "Hk_NNV_broad.csv", "broad.csv",
                      "Br_mock_narr.csv", "Br_NNV_narr.csv", "Hk_mock_narr.csv", "Hk_NNV_narr.csv", "narrow.csv"]
 
@@ -125,8 +123,9 @@ class XGBoostVariant:
                  data_file, target_file, validation, do_shuffle_features,
                  selected_features_file, train_set_file,
                  subsample, num_parallel_trees,
-                 data_ensemble_file
+                 data_ensemble_file, features_sets_dir
                  ):
+        self.features_sets_dir = features_sets_dir
         self.data_ensemble_file = data_ensemble_file
         self.subsample = subsample
         self.num_parallel_trees = num_parallel_trees
@@ -395,7 +394,8 @@ class XGBoostVariant:
             stats.write("set,count,weight,gain\n")
             peaks, counts, weights, gains = group_by_region(
                 pd.DataFrame(self.importance_weights, index=pd.Index([0])).T,
-                pd.DataFrame(self.importance_gains, index=pd.Index([0])).T
+                pd.DataFrame(self.importance_gains, index=pd.Index([0])).T,
+                self.features_sets_dir
                 )
             for peak in peaks:
                 stats.write(f"{peak},{counts[peak]},{weights[peak]},{gains[peak]}\n")
@@ -476,7 +476,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_ensemble", type=str,
                         default="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/exclude-chr3/data_ensemble.csv",
                         help="Data ensemble cdv file with labeled SNPs (abs path)")
-    parser.add_argument("--regions_dir", type=str, default="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/exclude-chr3/regions/",
+    parser.add_argument("--features_sets_dir", type=str, default="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/exclude-chr3/regions/",
                         help="Directory with regions files (abs path)")
 
     args = parser.parse_args()
@@ -496,7 +496,8 @@ if __name__ == "__main__":
 
                          subsample=args.subsample, num_parallel_trees=args.num_parallel_trees,
 
-                         data_ensemble_file=args.data_ensemble
+                         data_ensemble_file=args.data_ensemble,
+                         features_sets_dir=args.features_sets_dir
                          )
     clf.read_datasets()
 

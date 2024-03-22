@@ -33,7 +33,8 @@ for region in "${regions[@]}"; do
   echo "***STARTING $region (EXCLUDE CHR3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-int" \
-    --dataset "${dataset_ex}/features.csv" --target "${dataset_ex}/mortality.csv" --select "${dataset_ex}/regions/${region}"
+    --dataset "${dataset_ex}/features.csv" --target "${dataset_ex}/mortality.csv" --select "${dataset_ex}/regions/${region}" \
+    --features_sets_dir "${dataset_ex}/regions/"
 done
 
 for region in "${regions[@]}"; do
@@ -41,6 +42,7 @@ for region in "${regions[@]}"; do
   echo "***STARTING $region (INCLUDE CHR3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-${region}-int" \
-    --dataset "${dataset_in}/features.csv" --target "${dataset_in}/mortality.csv" --select "${dataset_in}/regions/${region}"
+    --dataset "${dataset_in}/features.csv" --target "${dataset_in}/mortality.csv" --select "${dataset_in}/regions/${region}"\
+    --features_sets_dir "${dataset_in}/regions/"
 done
 
