@@ -89,7 +89,10 @@ def data_ensemble(gains, data_ensemble_file):
 
     if len(intersection_features) > 0:
         info_funct = ensemble_ensemble["funct"].value_counts()
+        info_funct["gain"] = info_funct.groupby("funct")["gain"].sum()
+
         info_n_tissue = ensemble_ensemble["n_tissue"].value_counts()
+        info_n_tissue["gain"] = info_n_tissue.groupby("funct")["gain"].sum()
 
         print(info_funct)
         print(info_n_tissue)
@@ -224,6 +227,7 @@ class XGBoostVariant:
             y_test = pd.DataFrame(y_test)
         print("Done.\n", flush=True)
 
+        start_transf_t = time.time()
         print("Stats (train data):")
         print_stats(X_train, y_train, self.target)
         print("Transforming X_train and y_train into DMatrices...")
@@ -246,7 +250,8 @@ class XGBoostVariant:
         self.dtest = xgb.DMatrix(X_test)
 
         print()
-
+        stop_transf_t = time.time()
+        print(f"Transformation time: {stop_transf_t - start_transf_t}")
         end_t = time.time()
         print(f"Read time {end_t - start_t : .2f}s")
 
@@ -357,7 +362,7 @@ class XGBoostVariant:
             stats.write(f"method name,{self.model_name}\n")
             stats.write(f"algorithm,{self.method}\n")
             if self.train_set_file is None:
-                stats.write(f"training set,{self.train_frac * 100}%\n")
+                stats.write(f"training set,{self.train_frac}%\n")
             else:
                 stats.write(f"training set,{self.train_set_file}%\n")
             stats.write(f"validation set,{self.validation}\n")
@@ -402,6 +407,9 @@ class XGBoostVariant:
 
             intersection_features, info_funct, info_n_tissue = data_ensemble(gains=pd.DataFrame(self.importance_gains, index=pd.Index(["gain"])).T, data_ensemble_file=self.data_ensemble_file)
             stats.write(f"features in the ensemble,{len(intersection_features)}\n")
+
+            stats.write("\n")
+
             stats.write("funct,count\n")
             for i in info_funct.index:
                 stats.write(f"{i},{info_funct[i]}\n")
