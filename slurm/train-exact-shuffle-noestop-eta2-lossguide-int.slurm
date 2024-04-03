@@ -35,7 +35,7 @@ for region in "${regions[@]}"; do
   echo "***STARTING $region (EXCLUDE CHR3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-lossguide-int" \
-  --dataset $dataset_ex --target $dataset_ex/ebv.csv --select $dataset_ex/"$region" --grow_policy lossguide
+  --dataset $dataset_ex --target $dataset_ex/mortality.csv --select $dataset_ex/"$region" --grow_policy lossguide
 done
 
 for region in "${regions[@]}"; do
