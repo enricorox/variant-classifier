@@ -98,7 +98,7 @@ def data_ensemble(gains, data_ensemble_file):
         print(info_n_tissue)
         return intersection_features, info_funct, info_n_tissue
     else:
-        print("No features in the data ensemble!!!")
+        print("WARNING: No features in the data ensemble!!!")
         return intersection_features, pd.DataFrame(), pd.DataFrame()
 
 
