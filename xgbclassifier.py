@@ -228,30 +228,30 @@ class XGBoostVariant:
         print("Done.\n", flush=True)
 
         start_transf_t = time.time()
-        print("Stats (train data):")
+        print("Stats (train data):", flush=True)
         print_stats(X_train, y_train, self.target)
-        print("Transforming X_train and y_train into DMatrices...")
+        print("Transforming X_train and y_train into DMatrices...", flush=True)
         self.dtrain = xgb.DMatrix(X_train, y_train)
         print()
 
         if validation:
-            print("Stats (validation data):")
+            print("Stats (validation data):", flush=True)
             print_stats(X_validation, y_validation, self.target)
-            print("Transforming X_validation and y_validation into DMatrices...")
+            print("Transforming X_validation and y_validation into DMatrices...", flush=True)
             self.dvalidation = xgb.DMatrix(X_validation, y_validation)
             print()
         else:
             self.dvalidation = None
 
-        print("Stats (test data):")
+        print("Stats (test data):", flush=True)
         print_stats(X_test, y_test, self.target)
-        print("Transforming X_test into DMatrices...")
+        print("Transforming X_test into DMatrices...", flush=True)
         self.y_test = y_test
         self.dtest = xgb.DMatrix(X_test)
 
         print()
         stop_transf_t = time.time()
-        print(f"Transformation time: {stop_transf_t - start_transf_t}")
+        print(f"Transformation time: {stop_transf_t - start_transf_t}", flush=True)
         end_t = time.time()
         print(f"Read time {end_t - start_t : .2f}s")
 
