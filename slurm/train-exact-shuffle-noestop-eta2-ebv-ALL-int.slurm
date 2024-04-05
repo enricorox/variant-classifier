@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name train-exact-shuffle-noestop-eta2-ebv-ALL
+#SBATCH --job-name train-exact-shuffle-noestop-eta2-ebv-ALL-int
 #SBATCH --output logs/train-exact-shuffle-noestop-eta2-ebv-ALL-int.log
 #SBATCH --error logs/train-exact-shuffle-noestop-eta2-ebv-ALL-int.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
