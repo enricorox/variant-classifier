@@ -89,10 +89,10 @@ def data_ensemble(gains, data_ensemble_file):
 
     if len(intersection_features) > 0: # TODO fix bug here
         info_funct = ensemble["funct"].value_counts()
-        info_funct["gain"] = info_funct.groupby("funct")["gain"].sum() # KeyError: 'Column not found: gain'
+        info_funct["gain"] = ensemble.groupby("funct")["gain"].sum() # KeyError: 'Column not found: gain'
 
         info_n_tissue = ensemble["n_tissue"].value_counts()
-        info_n_tissue["gain"] = info_n_tissue.groupby("funct")["gain"].sum()
+        info_n_tissue["gain"] = ensemble.groupby("funct")["gain"].sum()
 
         print(info_funct)
         print(info_n_tissue)
