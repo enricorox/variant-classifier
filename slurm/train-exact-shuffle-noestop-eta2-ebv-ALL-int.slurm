@@ -35,7 +35,7 @@ for region in "${regions[@]}"; do
   echo "***STARTING $region (EXCLUDE CHR3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-ebv-int" \
-  --dataset $dataset_ex/features.csv --target $dataset_ex/ebv.csv --select $dataset_ex/"$region" --objective "reg:squarederror"
+  --dataset $dataset_ex/features.csv --target $dataset_ex/ebv.csv --select $dataset_ex/features-sets/"$region" --objective "reg:squarederror"
 done
 
 for region in "${regions[@]}"; do
@@ -43,6 +43,6 @@ for region in "${regions[@]}"; do
   echo "***STARTING $region (INCLUDE CHR3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2${region}-ebv-int" \
-  --dataset $dataset_in --target $dataset_in/ebv.csv --select $dataset_in/"$region" --objective "reg:squarederror"
+  --dataset $dataset_in --target $dataset_in/ebv.csv --select $dataset_in/features-sets/"$region" --objective "reg:squarederror"
 done
 
