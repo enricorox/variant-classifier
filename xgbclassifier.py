@@ -78,20 +78,20 @@ def group_by_region(weights, gains, regions_folder):
 def data_ensemble(gains, data_ensemble_file):
     features = set(gains.index.values)
 
-    ensemble_ensemble = pd.read_csv(data_ensemble_file, index_col=0, header=0)
-    intersection_features = list(features.intersection(ensemble_ensemble.index.values))
+    ensemble = pd.read_csv(data_ensemble_file, index_col=0, header=0)
+    intersection_features = list(features.intersection(ensemble.index.values))
     print(f"#features in the ensemble: {len(intersection_features)}")
 
-    ensemble_ensemble = ensemble_ensemble.loc[intersection_features, :]
-    ensemble_ensemble["gain"] = gains.loc[intersection_features, "gain"]
-    ensemble_ensemble.sort_values(by="gain", inplace=True, ascending=False)
-    ensemble_ensemble.to_csv("ensemble.csv")
+    ensemble = ensemble.loc[intersection_features, :]
+    ensemble["gain"] = gains.loc[intersection_features, "gain"]
+    ensemble.sort_values(by="gain", inplace=True, ascending=False)
+    ensemble.to_csv("ensemble.csv")
 
-    if len(intersection_features) > 0:
-        info_funct = ensemble_ensemble["funct"].value_counts()
-        info_funct["gain"] = info_funct.groupby("funct")["gain"].sum()
+    if len(intersection_features) > 0: # TODO fix bug here
+        info_funct = ensemble["funct"].value_counts()
+        info_funct["gain"] = info_funct.groupby("funct")["gain"].sum() # KeyError: 'Column not found: gain'
 
-        info_n_tissue = ensemble_ensemble["n_tissue"].value_counts()
+        info_n_tissue = ensemble["n_tissue"].value_counts()
         info_n_tissue["gain"] = info_n_tissue.groupby("funct")["gain"].sum()
 
         print(info_funct)
@@ -287,6 +287,10 @@ class XGBoostVariant:
             if self.by_tree < 1:
                 params["colsample_bytree"] = self.by_tree
 
+            if self.num_parallel_trees > 1: # TODO add other sample techniques
+                params["num_par_tree"] = self.num_parallel_trees
+                if not (self.by_tree < 1):
+                    print(f"WARNING: you need to add randomness to your Random Forest!")
         if evals is None:
             if self.dvalidation is None:
                 evals = [(self.dtrain, "training")]
