@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name train-exact-shuffle-noestop-eta2-ebv-ALL
-#SBATCH --output logs/train-exact-shuffle-noestop-eta2-ebv-ALL.log
+#SBATCH --output logs/train-exact-shuffle-noestop-eta2-ebv-ALL-int.log
 #SBATCH --error logs/train-exact-shuffle-noestop-eta2-ebv-ALL-int.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
@@ -35,7 +35,7 @@ for region in "${regions[@]}"; do
   echo "***STARTING $region (EXCLUDE CHR3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-ebv-int" \
-  --dataset $dataset_ex --target $dataset_ex/ebv.csv --select $dataset_ex/"$region" --objective "reg:squarederror"
+  --dataset $dataset_ex/features.csv --target $dataset_ex/ebv.csv --select $dataset_ex/"$region" --objective "reg:squarederror"
 done
 
 for region in "${regions[@]}"; do
