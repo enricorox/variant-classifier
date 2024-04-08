@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name exact-shuffle-noestop-eta2-clusters-broads-ebv-mortality-int
-#SBATCH --output logs/exact-shuffle-noestop-eta2-clusters-broads-ebv-mortality-int.log
-#SBATCH --error logs/exact-shuffle-noestop-eta2-clusters-broads-ebv-mortality-int.log
+#SBATCH --job-name exact-shuffle-noestop-eta2-clusters-broads-ebv-length-int
+#SBATCH --output logs/exact-shuffle-noestop-eta2-clusters-broads-ebv-length-int.log
+#SBATCH --error logs/exact-shuffle-noestop-eta2-clusters-broads-ebv-length-int.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
 #SBATCH
@@ -34,7 +34,7 @@ for region in "${broads[@]}"; do
   echo
   echo "***STARTING $region (cluster 0)***"
   echo
-  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster0-${region}-ebv-mortality-int" \
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster0-${region}-ebv-length-int" \
   --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/ebv_fl.csv --select $dataset_in/features-sets/"$region" --objective "reg:squarederror"
 done
 
@@ -42,6 +42,6 @@ for region in "${broads[@]}"; do
   echo
   echo "***STARTING $region (cluster 1)***"
   echo
-  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster1-${region}-ebv-mortality-int" \
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster1-${region}-ebv-length-int" \
   --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-1.csv --target $dataset_in/ebv_fl.csv --select $dataset_in/features-sets/"$region" --objective "reg:squarederror"
 done
