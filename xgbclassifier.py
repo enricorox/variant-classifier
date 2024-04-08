@@ -219,10 +219,13 @@ class XGBoostVariant:
                                                                     random_state=self.random_state
                                                                     )
         else:
-            train_cluster = pd.read_csv(self.train_set_file).values.tolist()
+            print(f"Reading training set...", flush=True)
+            train_cluster = pd.read_csv(self.train_set_file).iloc[:, 0].values.tolist()
 
-            X_train = data.iloc[train_cluster, :]
-            y_train = labels.iloc[train_cluster]  # Series
+            print(f"CLUSTER:\n{train_cluster}")
+            print(f"INDEX:\n{data.index}")
+            X_train = data.loc[train_cluster]
+            y_train = labels.loc[train_cluster]  # Series
             y_train = pd.DataFrame(y_train)
 
             X_test = data.drop(train_cluster)
