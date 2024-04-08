@@ -377,7 +377,7 @@ class XGBoostVariant:
         with open(stats_file, 'w') as stats:
             stats.write(f"method name,{self.model_name}\n")
             stats.write(f"algorithm,{self.method}\n")
-            stats.write(f"training set,{self.train_frac}%\n")
+            stats.write(f"training set,{self.train_frac}\n")
             stats.write(f"training set file,{self.train_set_file}\n")
             stats.write(f"validation set,{self.validation}\n")
             stats.write(f"feature shuffle,{self.do_shuffle_features}\n")
