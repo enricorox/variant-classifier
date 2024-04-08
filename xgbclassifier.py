@@ -1,4 +1,5 @@
 import argparse
+import math
 import os
 import time
 
@@ -7,7 +8,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from numpy import ndarray
-from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, roc_auc_score
+import sklearn.metrics as mt
 from sklearn.model_selection import train_test_split
 from xgboost import Booster
 
@@ -127,6 +128,8 @@ class XGBoostVariant:
                  subsample, num_parallel_trees,
                  data_ensemble_file, features_sets_dir
                  ):
+        self.mae = None
+        self.rmse = None
         self.features_sets_dir = features_sets_dir
         self.data_ensemble_file = data_ensemble_file
         self.subsample = subsample
@@ -225,6 +228,9 @@ class XGBoostVariant:
             X_test = data.drop(train_cluster)
             y_test = labels.drop(train_cluster)  # Series
             y_test = pd.DataFrame(y_test)
+
+            self.train_frac = len(X_train) / (len(X_train) + len(X_test))
+
         print("Done.\n", flush=True)
 
         start_transf_t = time.time()
@@ -330,8 +336,8 @@ class XGBoostVariant:
         print(f"Best score: {self.best_score}")
         print(f"Best iteration: {self.best_it}")
 
-        if "bin" in self.objective:
-            conf_mat = confusion_matrix(self.y_test, self.y_pred)
+        if "bin" in self.objective:  # classification
+            conf_mat = mt.confusion_matrix(self.y_test, self.y_pred)
             true_neg = conf_mat[0][0]
             true_pos = conf_mat[1][1]
             false_neg = conf_mat[1][0]
@@ -346,13 +352,16 @@ class XGBoostVariant:
 
             # accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
 
-        self.accuracy = accuracy_score(self.y_test, self.y_pred)
-        self.f1 = f1_score(self.y_test, self.y_pred)
-        self.auc = roc_auc_score(self.y_test, self.y_pred)
+            self.accuracy = mt.accuracy_score(self.y_test, self.y_pred)
+            self.f1 = mt.f1_score(self.y_test, self.y_pred)
+            self.auc = mt.roc_auc_score(self.y_test, self.y_pred)
 
-        print(f"Accuracy = {self.accuracy * 100 : .3f} %")
-        print(f"f1 = {self.f1 * 100 : .3f} %")
-        print(f"ROC_AUC = {self.auc * 100 : .3f} %")
+            print(f"Accuracy = {self.accuracy * 100 : .3f} %")
+            print(f"f1 = {self.f1 * 100 : .3f} %")
+            print(f"ROC_AUC = {self.auc * 100 : .3f} %")
+        else:  # regression
+            self.mae = mt.mean_absolute_error(self.y_test, self.y_pred)
+            self.rmse = math.sqrt(mt.mean_squared_error(self.y_test, self.y_pred))
 
         print_num_feat = 10
         importance = sorted(self.importance_gains.items(), key=lambda item: item[1], reverse=True)
@@ -365,10 +374,8 @@ class XGBoostVariant:
         with open(stats_file, 'w') as stats:
             stats.write(f"method name,{self.model_name}\n")
             stats.write(f"algorithm,{self.method}\n")
-            if self.train_set_file is None:
-                stats.write(f"training set,{self.train_frac}%\n")
-            else:
-                stats.write(f"training set,{self.train_set_file}%\n")
+            stats.write(f"training set,{self.train_frac}%\n")
+            stats.write(f"training set file,{self.train_set_file}\n")
             stats.write(f"validation set,{self.validation}\n")
             stats.write(f"feature shuffle,{self.do_shuffle_features}\n")
             stats.write(f"feature sampling,{self.by_tree}\n")
@@ -387,6 +394,8 @@ class XGBoostVariant:
             stats.write(f"accuracy,{self.accuracy}\n")
             stats.write(f"f1,{self.f1}\n")
             stats.write(f"ROC AUC,{self.auc}\n")
+            stats.write(f"MAE,{self.mae}\n")
+            stats.write(f"RMSE,{self.rmse}\n")
             stats.write(f"best iteration,{self.best_it}\n")
             stats.write(f"tree created,{self.bst.num_boosted_rounds()}\n")
 
