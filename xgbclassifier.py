@@ -498,7 +498,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_ensemble", type=str,
                         default="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/exclude-chr3/data_ensemble.csv",
                         help="Data ensemble cdv file with labeled SNPs (abs path)")
-    parser.add_argument("--features_sets_dir", type=str, default="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/exclude-chr3/regions/",
+    parser.add_argument("--features_sets_dir", type=str, default="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/exclude-chr3/features-sets/",
                         help="Directory with regions files (abs path)")
 
     args = parser.parse_args()

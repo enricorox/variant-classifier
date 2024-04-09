@@ -35,7 +35,8 @@ for region in "${broads[@]}"; do
   echo "***STARTING $region (cluster 0)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster0-${region}-ebv-length-int" \
-  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/ebv_fl.csv --select $dataset_in/features-sets/"$region" --objective "reg:squarederror"
+  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/ebv_fl.csv \
+  --features_sets_dir $dataset_in/features-sets --select $dataset_in/features-sets/"$region" --objective "reg:squarederror"
 done
 
 for region in "${broads[@]}"; do
@@ -43,5 +44,6 @@ for region in "${broads[@]}"; do
   echo "***STARTING $region (cluster 1)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster1-${region}-ebv-length-int" \
-  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-1.csv --target $dataset_in/ebv_fl.csv --select $dataset_in/features-sets/"$region" --objective "reg:squarederror"
+  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-1.csv --target $dataset_in/ebv_fl.csv \
+  --features_sets_dir $dataset_in/features-sets --select $dataset_in/features-sets/"$region" --objective "reg:squarederror"
 done
