@@ -222,8 +222,6 @@ class XGBoostVariant:
             print(f"Reading training set...", flush=True)
             train_cluster = pd.read_csv(self.train_set_file).iloc[:, 0].values.tolist()
 
-            print(f"CLUSTER:\n{train_cluster}")
-            print(f"INDEX:\n{data.index}")
             X_train = data.loc[train_cluster]
             y_train = labels.loc[train_cluster]  # Series
             y_train = pd.DataFrame(y_train)
