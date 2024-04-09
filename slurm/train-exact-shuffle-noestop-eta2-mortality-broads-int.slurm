@@ -36,7 +36,7 @@ for region in "${broads[@]}"; do
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster0-${region}-mortality-int" \
   --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/mortality.csv \
-  --features_sets_dir $dataset_in/features-sets --select $dataset_in/features-sets/"$region"
+  --features_sets_dir $dataset_in/features-sets/ --select $dataset_in/features-sets/"$region"
 done
 
 for region in "${broads[@]}"; do
@@ -45,7 +45,7 @@ for region in "${broads[@]}"; do
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster1-${region}-mortality-int" \
   --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-1.csv --target $dataset_in/mortality.csv \
-  --features_sets_dir $dataset_in/features-sets --select $dataset_in/features-sets/"$region"
+  --features_sets_dir $dataset_in/features-sets/ --select $dataset_in/features-sets/"$region"
 done
 
 for region in "${broads[@]}"; do
