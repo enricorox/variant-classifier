@@ -63,5 +63,5 @@ for region in "${broads[@]}"; do
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster1-nochr3-${region}-ebv-mortality-int" \
   --dataset $dataset_ex/features.csv --cluster $dataset_in/cluster-1.csv --target $dataset_ex/ebv_mortality.csv \
-  --features_sets_dir $dataset_ex/features-sets --select $dataset_ex/features-sets/"$region" --objective "reg:squarederror"
+  --features_sets_dir $dataset_ex/features-sets/ --select $dataset_ex/features-sets/"$region" --objective "reg:squarederror"
 done
