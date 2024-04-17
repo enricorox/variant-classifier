@@ -129,6 +129,9 @@ class XGBoostVariant:
                  subsample, num_parallel_trees,
                  data_ensemble_file, features_sets_dir
                  ):
+        self.matthews = None
+        self.pcoeff_correct = None
+        self.pcoeff = None
         self.mae = None
         self.rmse = None
         self.features_sets_dir = features_sets_dir
@@ -357,20 +360,38 @@ class XGBoostVariant:
 
             self.accuracy = mt.accuracy_score(self.y_test, self.y_pred)
             self.f1 = mt.f1_score(self.y_test, self.y_pred)
-            self.auc = mt.roc_auc_score(self.y_test, self.y_pred)
+            try:
+                self.auc = mt.roc_auc_score(self.y_test, self.y_pred)
+            except ValueError:
+                self.auc = None
+            self.matthews = mt.matthews_corrcoef(self.y_test, self.y_pred)
 
             print(f"Accuracy = {self.accuracy * 100 : .3f} %")
             print(f"f1 = {self.f1 * 100 : .3f} %")
-            print(f"ROC_AUC = {self.auc * 100 : .3f} %")
+            print(f"Matthews = {self.matthews}")
+            try:
+                print(f"ROC_AUC = {self.auc * 100 : .3f} %")
+            except TypeError:
+                print("ROC_AUC = None")
+
         else:  # regression
             self.mae = mt.mean_absolute_error(self.y_test, self.y_pred)
             self.rmse = math.sqrt(mt.mean_squared_error(self.y_test, self.y_pred))
-            # TODO pearson corr
+            self.pcoeff = np.corrcoef(self.y_test, self.y_pred)[0][1]
+            reliability = 0.999
+            self.pcoeff_correct = math.sqrt((self.pcoeff ** 2) * reliability)
 
-        #TODO save y_pred
+            print(f"MAE = {self.mae * 100 : .2f} %")
+            print(f"RMSE = {self.rmse * 100 : .2f} %")
+            print(f"pearson = {self.pcoeff}")
+            print(f"pearson_correct = {self.pcoeff_correct}")
+
+        # save y_pred
         predictions = self.y_test
         predictions["pred"] = self.y_pred
         predictions.to_csv("predictions.csv")
+
+        # print top features
         print_num_feat = 10
         importance = sorted(self.importance_gains.items(), key=lambda item: item[1], reverse=True)
         self.num_features = len(importance)
@@ -402,6 +423,9 @@ class XGBoostVariant:
             stats.write(f"accuracy,{self.accuracy}\n")
             stats.write(f"f1,{self.f1}\n")
             stats.write(f"ROC AUC,{self.auc}\n")
+            stats.write(f"Matthews,{self.matthews}\n")
+            stats.write(f"Pearson,{self.pcoeff}\n")
+            stats.write(f"Pearson_correct,{self.pcoeff_correct}\n")
             stats.write(f"MAE,{self.mae}\n")
             stats.write(f"RMSE,{self.rmse}\n")
             stats.write(f"best iteration,{self.best_it}\n")
@@ -449,7 +473,7 @@ class XGBoostVariant:
             for g in top_gains:
                 stats.write(f"{g[0]},{g[1]}\n")
 
-    def plot_trees(self, tree_set=None, tree_name=None):  #TODO save map, optional trees
+    def plot_trees(self, tree_set=None, tree_name=None, render=False):
         print("Printing trees...")
         if tree_set is None:
             tree_set = range(self.num_trees)
@@ -460,16 +484,19 @@ class XGBoostVariant:
         for i in tree_set:
             graph: graphviz.Source
             graph = xgb.to_graphviz(self.bst, num_trees=i)
-            graph.render(filename=f"{tree_name}-{i}", directory="trees", format="png", cleanup=True)
+            if render:
+                graph.render(filename=f"{tree_name}-{i}", directory="trees", format="png", cleanup=True)
+            else:
+                graph.save(filename=f"{tree_name}-{i}.gv", directory="trees")
         print("Done.")
 
     def write_importance(self, filename):
         with open(filename + ".weights.csv", 'w') as importance_file:
-            for item in self.importance_weights.items():
+            for item in sorted(self.importance_weights.items(), key=lambda x: x[1]):
                 importance_file.write(f"{item[0]}, {item[1]}\n")
 
         with open(filename + ".gains.csv", 'w') as importance_file:
-            for item in self.importance_gains.items():
+            for item in sorted(self.importance_gains.items(), key=lambda x: x[1]):
                 importance_file.write(f"{item[0]}, {item[1]}\n")
 
 
