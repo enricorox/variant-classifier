@@ -19,7 +19,7 @@ def read_feature_list(selection_file):
     return features.iloc[:, 0].tolist()
 
 
-def print_stats(X, y, label):
+def print_dataset_stats(X, y, label):
     print(f"\tData points: {X.shape[0]}")
     print(f"\t\tnumber of features: {X.shape[1]}")
     print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
@@ -54,7 +54,7 @@ def group_by_region(weights, gains, regions_folder):
     counts_dic = {}
     weights_dic = {}
     gains_dic = {}
-    # Read from each CSV file and append the list to the main list
+
     print("Peaks\tCounts\tWeights\tGains")
     for file in regions_files:
         current_list = pd.read_csv(regions_folder + file).iloc[:, 0].tolist()
@@ -96,6 +96,7 @@ def data_ensemble(gains, data_ensemble_file):
         info_n_tissue["gain"] = ensemble.groupby("funct")["gain"].sum()
 
         print(info_funct)
+        print()
         print(info_n_tissue)
         return intersection_features, info_funct, info_n_tissue
     else:
@@ -176,7 +177,8 @@ class XGBoostVariant:
                            index_col=0,  # first column as index
                            header=0  # first row as header
                            ).astype(np.int8)
-        print("Done.", flush=True)
+        stop_t = time.time()
+        print(f"Done in {stop_t - start_t : .2f} s.", flush=True)
 
         if selected_features_file is not None:
             print("Selecting features...", flush=True)
@@ -189,7 +191,7 @@ class XGBoostVariant:
             start_shuffle_t = time.time()
             data = data.sample(frac=1, axis=1, random_state=self.random_state)
             stop_shuffle_t = time.time()
-            print(f"Done in {stop_shuffle_t - start_shuffle_t} s", flush=True)
+            print(f"Done in {stop_shuffle_t - start_shuffle_t : .2f} s", flush=True)
 
         self.features = list(data.columns)
 
@@ -219,7 +221,7 @@ class XGBoostVariant:
                                                                     random_state=self.random_state
                                                                     )
         else:
-            print(f"Reading training set...", flush=True)
+            print(f"Reading training set IDs...", flush=True)
             train_cluster = pd.read_csv(self.train_set_file, header=0)["id"].values.tolist()
 
             X_train = data.loc[train_cluster]
@@ -236,14 +238,14 @@ class XGBoostVariant:
 
         start_transf_t = time.time()
         print("Stats (train data):", flush=True)
-        print_stats(X_train, y_train, self.target)
+        print_dataset_stats(X_train, y_train, self.target)
         print("Transforming X_train and y_train into DMatrices...", flush=True)
         self.dtrain = xgb.DMatrix(X_train, y_train)
         print()
 
         if validation:
             print("Stats (validation data):", flush=True)
-            print_stats(X_validation, y_validation, self.target)
+            print_dataset_stats(X_validation, y_validation, self.target)
             print("Transforming X_validation and y_validation into DMatrices...", flush=True)
             self.dvalidation = xgb.DMatrix(X_validation, y_validation)
             print()
@@ -251,16 +253,16 @@ class XGBoostVariant:
             self.dvalidation = None
 
         print("Stats (test data):", flush=True)
-        print_stats(X_test, y_test, self.target)
+        print_dataset_stats(X_test, y_test, self.target)
         print("Transforming X_test into DMatrices...", flush=True)
         self.y_test = y_test
         self.dtest = xgb.DMatrix(X_test)
 
         print()
         stop_transf_t = time.time()
-        print(f"Transformation time: {stop_transf_t - start_transf_t}", flush=True)
+        print(f"Transformation time: {stop_transf_t - start_transf_t : .2f} s", flush=True)
         end_t = time.time()
-        print(f"Read time {end_t - start_t : .2f}s")
+        print(f"Read time {end_t - start_t : .2f} s")
 
     def set_weights(self, weights=None, equal_weight=False):
         # feature weights TODO fix random order with dictionary on weights!!!
@@ -294,7 +296,7 @@ class XGBoostVariant:
             if self.by_tree < 1:
                 params["colsample_bytree"] = self.by_tree
 
-            if self.num_parallel_trees > 1: # TODO add other sample techniques
+            if self.num_parallel_trees > 1: # TODO add other sample techniques (bynode and by_level)
                 params["num_par_tree"] = self.num_parallel_trees
                 if not (self.by_tree < 1):
                     print(f"WARNING: you need to add randomness to your Random Forest!")
@@ -363,7 +365,12 @@ class XGBoostVariant:
         else:  # regression
             self.mae = mt.mean_absolute_error(self.y_test, self.y_pred)
             self.rmse = math.sqrt(mt.mean_squared_error(self.y_test, self.y_pred))
+            # TODO pearson corr
 
+        #TODO save y_pred
+        predictions = self.y_test
+        predictions["pred"] = self.y_pred
+        predictions.to_csv("predictions.csv")
         print_num_feat = 10
         importance = sorted(self.importance_gains.items(), key=lambda item: item[1], reverse=True)
         self.num_features = len(importance)
@@ -442,7 +449,7 @@ class XGBoostVariant:
             for g in top_gains:
                 stats.write(f"{g[0]},{g[1]}\n")
 
-    def plot_trees(self, tree_set=None, tree_name=None):
+    def plot_trees(self, tree_set=None, tree_name=None):  #TODO save map, optional trees
         print("Printing trees...")
         if tree_set is None:
             tree_set = range(self.num_trees)
