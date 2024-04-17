@@ -22,8 +22,9 @@ def read_feature_list(selection_file):
 def print_dataset_stats(X, y, label):
     print(f"\tData points: {X.shape[0]}")
     print(f"\t\tnumber of features: {X.shape[1]}")
-    print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
-    print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
+    if y[label].unique() == 2:
+        print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
+        print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
 
 
 def group_by_chromosome(weigths, gains):
@@ -377,7 +378,7 @@ class XGBoostVariant:
         else:  # regression
             self.mae = mt.mean_absolute_error(self.y_test, self.y_pred)
             self.rmse = math.sqrt(mt.mean_squared_error(self.y_test, self.y_pred))
-            self.pcoeff = np.corrcoef(self.y_test, self.y_pred)[0][1]
+            self.pcoeff = np.corrcoef(self.y_test, self.y_pred, rowvar=False)[0][1]
             reliability = 0.999
             self.pcoeff_correct = math.sqrt((self.pcoeff ** 2) * reliability)
 
