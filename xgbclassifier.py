@@ -124,10 +124,10 @@ class XGBoostVariant:
     importance_gains = None
 
     def __init__(self, model_name, num_trees, max_depth, eta, early_stopping,
-                 sample_bytree, method, objective, grow_policy,
+                 method, objective, grow_policy,
                  data_file, target_file, validation, do_shuffle_features,
                  selected_features_file, train_set_file,
-                 subsample, num_parallel_trees,
+                 subsample, sample_bytree, sample_by_level, sample_bynode, num_parallel_trees,
                  data_ensemble_file, features_sets_dir
                  ):
         self.matthews = None
@@ -147,6 +147,8 @@ class XGBoostVariant:
         self.eta = eta
         self.early_stopping = early_stopping
         self.by_tree = sample_bytree
+        self.by_node = sample_bynode
+        self.by_level = sample_by_level
         self.random_state = 42
         self.model_name = model_name
         self.num_trees = num_trees
@@ -297,12 +299,17 @@ class XGBoostVariant:
                       "objective": self.objective, "grow_policy": self.grow_policy,
                       "seed": self.random_state,
                       "eta": self.eta, "max_depth": self.max_depth}
+
             if self.by_tree < 1:
                 params["colsample_bytree"] = self.by_tree
+            if self.by_node < 1:
+                params["colsample_bynode"] = self.by_node
+            if self.by_level < 1:
+                params["colsample_bylevel"] = self.by_level
 
-            if self.num_parallel_trees > 1: # TODO add other sample techniques (bynode and by_level)
+            if self.num_parallel_trees > 1:
                 params["num_par_tree"] = self.num_parallel_trees
-                if not (self.by_tree < 1):
+                if not (self.by_tree < 1 or self.by_node < 1 or self.by_level < 1):
                     print(f"WARNING: you need to add randomness to your Random Forest!")
         if evals is None:
             if self.dvalidation is None:
@@ -523,7 +530,9 @@ if __name__ == "__main__":
     parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
     parser.add_argument("--eta", type=float, default=.2, help="Learning rate")
 
-    parser.add_argument("--sample_bytree", type=float, default=1, help="Sample by tree")
+    parser.add_argument("--sample_bytree", type=float, default=1, help="Sample features by tree")
+    parser.add_argument("--sample_bylevel", type=float, default=1, help="Sample features by level")
+    parser.add_argument("--sample_bynode", type=float, default=1, help="Sample features by node")
 
     # random forest
     parser.add_argument("--subsample", type=float, default=1, help="Data point sampling")  # TODO
@@ -549,7 +558,7 @@ if __name__ == "__main__":
 
                          method=args.method, objective=args.objective, grow_policy=args.grow_policy,
                          num_trees=args.num_trees, early_stopping=args.early_stopping, max_depth=args.max_depth, eta=args.eta,
-                         sample_bytree=args.sample_bytree,
+                         sample_bytree=args.sample_bytree, sample_by_level=args.sample_bylevel, sample_bynode=args.sample_bynode,
 
                          subsample=args.subsample, num_parallel_trees=args.num_parallel_trees,
 
@@ -576,7 +585,6 @@ if __name__ == "__main__":
     clf.write_stats()
 
 # TODO add variable constraints
-# TODO add features sampling by node, level
 # TODO add scale_pos_weight to balance classes
 # TODO add gamma (high for conservative algorithm)
 # TODO params["eval_metric"] = "auc"
