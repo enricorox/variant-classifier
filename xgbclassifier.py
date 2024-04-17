@@ -22,7 +22,7 @@ def read_feature_list(selection_file):
 def print_dataset_stats(X, y, label):
     print(f"\tData points: {X.shape[0]}")
     print(f"\t\tnumber of features: {X.shape[1]}")
-    if y[label].unique() == 2:
+    if len(y[label].unique()) == 2:
         print(f"\t\tlabel(0) counts: {(y[label] == 0).sum() / len(y[label]) * 100 : .2f} %")
         print(f"\t\tlabel(1) counts: {(y[label] == 1).sum() / len(y[label]) * 100 : .2f} %")
 
