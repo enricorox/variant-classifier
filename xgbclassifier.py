@@ -389,8 +389,8 @@ class XGBoostVariant:
             reliability = 0.999
             self.pcoeff_correct = math.sqrt((self.pcoeff ** 2) * reliability)
 
-            print(f"MAE = {self.mae * 100 : .2f} %")
-            print(f"RMSE = {self.rmse * 100 : .2f} %")
+            print(f"MAE = {self.mae : .2f}")
+            print(f"RMSE = {self.rmse : .2f}")
             print(f"pearson = {self.pcoeff}")
             print(f"pearson_correct = {self.pcoeff_correct}")
 
