@@ -437,6 +437,7 @@ class XGBoostVariant:
             stats.write(f"MAE,{self.mae}\n")
             stats.write(f"RMSE,{self.rmse}\n")
             stats.write(f"best iteration,{self.best_it}\n")
+            # stats.write(f"best score,{self.best_score}\n")
             stats.write(f"tree created,{self.bst.num_boosted_rounds()}\n")
 
             stats.write("\n")

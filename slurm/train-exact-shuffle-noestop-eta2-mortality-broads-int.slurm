@@ -53,8 +53,8 @@ for region in "${broads[@]}"; do
   echo "***STARTING $region (cluster 0, exclude chr3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-cluster0-nochr3-${region}-mortality-int" \
-  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/mortality.csv \
-  --features_sets_dir $dataset_ex/features-sets/ --select $dataset_in/features-sets/"$region"
+  --dataset $dataset_ex/features.csv --cluster $dataset_ex/cluster-0.csv --target $dataset_ex/mortality.csv \
+  --features_sets_dir $dataset_ex/features-sets/ --select $dataset_ex/features-sets/"$region"
 done
 
 for region in "${broads[@]}"; do
