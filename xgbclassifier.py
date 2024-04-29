@@ -306,10 +306,12 @@ class XGBoostVariant:
                 params["colsample_bynode"] = self.by_node
             if self.by_level < 1:
                 params["colsample_bylevel"] = self.by_level
+            if self.subsample < 1:
+                params["subsample"] = self.subsample
 
             if self.num_parallel_trees > 1:
-                params["num_par_tree"] = self.num_parallel_trees
-                if not (self.by_tree < 1 or self.by_node < 1 or self.by_level < 1):
+                params["num_parallel_tree"] = self.num_parallel_trees
+                if not (self.by_tree < 1 or self.by_node < 1 or self.by_level < 1 or self.subsample < 1):
                     print(f"WARNING: you need to add randomness to your Random Forest!")
         if evals is None:
             if self.dvalidation is None:
