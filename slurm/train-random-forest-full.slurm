@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name train-random-forest-full.slurm
-#SBATCH --output logs/train-random-forest-full.slurm.log
-#SBATCH --error logs/train-random-forest-full.slurm.log
+#SBATCH --job-name train-random-forest-full
+#SBATCH --output logs/train-random-forest-full.log
+#SBATCH --error logs/train-random-forest-full.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
 #SBATCH
@@ -31,8 +31,15 @@ set +e
 echo
 echo "***STARTING RF 80/20***"
 echo
-srun python xgbclassifier.py --model_name "train-random-forest-full.slurm" --method hist \
+srun python xgbclassifier.py --model_name "train-random-forest-full" --method hist \
 --dataset $dataset_in/features.csv --target $dataset_in/mortality.csv \
 --num_trees 1 --num_parallel_trees 1000 --sample_bynode 0.001 \
 --max_depth 2
 
+echo
+echo "***STARTING RBF 80/20***"
+echo
+srun python xgbclassifier.py --model_name "train-random-forest-full" --method hist \
+--dataset $dataset_in/features.csv --target $dataset_in/mortality.csv \
+--num_trees 10 --num_parallel_trees 1000 --sample_bynode 0.001 \
+--max_depth 2
