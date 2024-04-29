@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name exact-shuffle-noestop-eta2-clusters-broads-mortality-int
-#SBATCH --output logs/exact-shuffle-noestop-eta2-clusters-broads-mortality-int.log
-#SBATCH --error logs/exact-shuffle-noestop-eta2-clusters-broads-mortality-int.log
+#SBATCH --job-name exact-shuffle-noestop-eta2-clusters-random-mortality-int
+#SBATCH --output logs/exact-shuffle-noestop-eta2-clusters-random-mortality-int.log
+#SBATCH --error logs/exact-shuffle-noestop-eta2-clusters-random-mortality-int.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
 #SBATCH
