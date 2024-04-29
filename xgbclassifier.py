@@ -415,7 +415,6 @@ class XGBoostVariant:
             stats.write(f"training set file,{self.train_set_file}\n")
             stats.write(f"validation set,{self.validation}\n")
             stats.write(f"feature shuffle,{self.do_shuffle_features}\n")
-            stats.write(f"feature sampling,{self.by_tree}\n")
             stats.write(f"feature set,{self.features_set_file}\n")
             stats.write(f"features available,{len(self.features)}\n")
             stats.write(f"early stopping,{self.early_stopping}\n")
@@ -424,6 +423,9 @@ class XGBoostVariant:
             stats.write(f"max depth,{self.max_depth}\n")
             stats.write(f"grow_policy,{self.grow_policy}\n")
             stats.write(f"parallel trees,{self.num_parallel_trees}\n")
+            stats.write(f"sampling by tree,{self.by_tree}\n")
+            stats.write(f"sampling by level,{self.by_level}\n")
+            stats.write(f"sampling by node,{self.by_node}\n")
 
             stats.write("\n")
 
@@ -437,7 +439,7 @@ class XGBoostVariant:
             stats.write(f"MAE,{self.mae}\n")
             stats.write(f"RMSE,{self.rmse}\n")
             stats.write(f"best iteration,{self.best_it}\n")
-            # stats.write(f"best score,{self.best_score}\n")
+            stats.write(f"best score,{self.best_score}\n")
             stats.write(f"tree created,{self.bst.num_boosted_rounds()}\n")
 
             stats.write("\n")
@@ -537,7 +539,7 @@ if __name__ == "__main__":
 
     # random forest
     parser.add_argument("--subsample", type=float, default=1, help="Data point sampling")  # TODO
-    parser.add_argument("--num_parallel_trees", type=int, default=1, help="Number of parallel trees")  # TODO
+    parser.add_argument("--num_parallel_trees", type=int, default=1, help="Number of parallel trees")
 
     # stats
     parser.add_argument("--data_ensemble", type=str,
