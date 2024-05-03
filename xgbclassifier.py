@@ -1,4 +1,5 @@
 import argparse
+import json
 import math
 import os
 import time
@@ -130,6 +131,7 @@ class XGBoostVariant:
                  subsample, sample_bytree, sample_by_level, sample_bynode, num_parallel_trees,
                  data_ensemble_file, features_sets_dir
                  ):
+        self.estimated_base_score = None
         self.y_train_mean = .5
         self.matthews = None
         self.pcoeff_correct = None
@@ -408,6 +410,9 @@ class XGBoostVariant:
         predictions["pred"] = self.y_pred
         predictions.to_csv("predictions.csv")
 
+        self.estimated_base_score = json.loads(self.bst.save_config())["learner"]["learner_model_param"][
+            "base_score"
+        ]
         # print top features
         print_num_feat = 10
         importance = sorted(self.importance_gains.items(), key=lambda item: item[1], reverse=True)
@@ -438,6 +443,7 @@ class XGBoostVariant:
 
             stats.write("\n")
 
+            stats.write(f"estimated base score,{self.estimated_base_score}\n")
             stats.write(f"selected features,{self.num_features}\n")
             stats.write(f"accuracy,{self.accuracy}\n")
             stats.write(f"f1,{self.f1}\n")
