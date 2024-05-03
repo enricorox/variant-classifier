@@ -125,12 +125,13 @@ class XGBoostVariant:
     importance_gains = None
 
     def __init__(self, model_name, num_trees, max_depth, eta, early_stopping,
-                 method, objective, grow_policy,
+                 method, objective, base_score, grow_policy,
                  data_file, target_file, validation, do_shuffle_features,
                  selected_features_file, train_set_file,
                  subsample, sample_bytree, sample_by_level, sample_bynode, num_parallel_trees,
                  data_ensemble_file, features_sets_dir
                  ):
+        self.base_score = base_score
         self.estimated_base_score = None
         self.y_train_mean = .5
         self.matthews = None
@@ -320,8 +321,8 @@ class XGBoostVariant:
                 if not (self.by_tree < 1 or self.by_node < 1 or self.by_level < 1 or self.subsample < 1):
                     print(f"WARNING: you need to add randomness to your Random Forest!")
 
-            if "bin" not in self.objective:
-                params["base_score"] = self.y_train_mean
+            if self.base_score is not None:
+                params["base_score"] = self.base_score
         if evals is None:
             if self.dvalidation is None:
                 evals = [(self.dtrain, "training")]
@@ -542,6 +543,7 @@ if __name__ == "__main__":
     parser.add_argument("--method", type=str, default="exact", help="Tree method")
     parser.add_argument('--objective', default="binary:hinge",
                         help="binary:hinge or binary:logistic or reg:squarederr...")
+    parser.add_argument("--base_score", type=float, default=None, help="Starting value to affinate by the booster")
     parser.add_argument('--grow_policy', default="depthwise", help="depthwise or lossguide")
     parser.add_argument("--num_trees", type=int, default=100, help="Number of trees")
     parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
@@ -574,7 +576,7 @@ if __name__ == "__main__":
                          selected_features_file=args.select, train_set_file=args.cluster,
 
 
-                         method=args.method, objective=args.objective, grow_policy=args.grow_policy,
+                         method=args.method, objective=args.objective, base_score=args.base_score, grow_policy=args.grow_policy,
                          num_trees=args.num_trees, early_stopping=args.early_stopping, max_depth=args.max_depth, eta=args.eta,
                          sample_bytree=args.sample_bytree, sample_by_level=args.sample_bylevel, sample_bynode=args.sample_bynode,
 
