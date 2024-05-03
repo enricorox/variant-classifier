@@ -130,6 +130,7 @@ class XGBoostVariant:
                  subsample, sample_bytree, sample_by_level, sample_bynode, num_parallel_trees,
                  data_ensemble_file, features_sets_dir
                  ):
+        self.y_train_mean = .5
         self.matthews = None
         self.pcoeff_correct = None
         self.pcoeff = None
@@ -242,9 +243,12 @@ class XGBoostVariant:
 
         print("Done.\n", flush=True)
 
+        self.y_train_mean = y_train.mean().iloc[0]
+
         start_transf_t = time.time()
         print("Stats (train data):", flush=True)
         print_dataset_stats(X_train, y_train, self.target)
+        print(f"\tmean(y_train) = {self.y_train_mean}")
         print("Transforming X_train and y_train into DMatrices...", flush=True)
         self.dtrain = xgb.DMatrix(X_train, y_train)
         print()
@@ -313,6 +317,9 @@ class XGBoostVariant:
                 params["num_parallel_tree"] = self.num_parallel_trees
                 if not (self.by_tree < 1 or self.by_node < 1 or self.by_level < 1 or self.subsample < 1):
                     print(f"WARNING: you need to add randomness to your Random Forest!")
+
+            if "bin" not in self.objective:
+                params["base_score"] = self.y_train_mean
         if evals is None:
             if self.dvalidation is None:
                 evals = [(self.dtrain, "training")]
