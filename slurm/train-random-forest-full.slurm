@@ -31,7 +31,7 @@ set +e
 echo
 echo "***STARTING RF 80/20***"
 echo
-srun python xgbclassifier.py --model_name "train-random-forest-full" --method hist \
+srun python xgbclassifier.py --model_name "train-random-forest-full-avg-base-score" --method hist \
 --dataset $dataset_in/features.csv --target $dataset_in/mortality.csv \
 --num_trees 1 --num_parallel_trees 1000 --max_depth 100 \
 --sample_bynode 0.001 --subsample 0.99
@@ -40,7 +40,7 @@ srun python xgbclassifier.py --model_name "train-random-forest-full" --method hi
 echo
 echo "***STARTING RBF 80/20***"
 echo
-srun python xgbclassifier.py --model_name "train-random-boosted-forest-full" --method hist \
+srun python xgbclassifier.py --model_name "train-random-boosted-forest-full-avg-base-score" --method hist \
 --dataset $dataset_in/features.csv --target $dataset_in/mortality.csv \
 --num_trees 10 --num_parallel_trees 1000 --max_depth 100 \
 --sample_bynode 0.001 --subsample 0.99
