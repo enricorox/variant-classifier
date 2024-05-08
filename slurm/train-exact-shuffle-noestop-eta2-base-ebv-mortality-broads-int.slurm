@@ -32,20 +32,6 @@ set +e
 
 for region in "${broads[@]}"; do
   echo
-  echo "***STARTING $region (cluster 0, exclude chr3)***"
-  echo
-  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-base-eta2-cluster0-nochr3-${region}-ebv-mortality-int" \
-  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/ebv_mortality.csv \
-  --features_sets_dir $dataset_ex/features-sets/ --select $dataset_ex/features-sets/"$region" --objective "reg:squarederror"\
-  --base_score 0
-done
-
-exit
-
-#### ALL DONE
-
-for region in "${broads[@]}"; do
-  echo
   echo "***STARTING $region (cluster 0)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-base-cluster0-${region}-ebv-mortality-int" \
@@ -64,14 +50,24 @@ for region in "${broads[@]}"; do
   --base_score 0
 done
 
-
-
 for region in "${broads[@]}"; do
   echo
   echo "***STARTING $region (cluster 1, exclude chr3)***"
   echo
   srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-base-cluster1-nochr3-${region}-ebv-mortality-int" \
   --dataset $dataset_ex/features.csv --cluster $dataset_in/cluster-1.csv --target $dataset_ex/ebv_mortality.csv \
+  --features_sets_dir $dataset_ex/features-sets/ --select $dataset_ex/features-sets/"$region" --objective "reg:squarederror"\
+  --base_score 0
+done
+
+exit
+
+for region in "${broads[@]}"; do
+  echo
+  echo "***STARTING $region (cluster 0, exclude chr3)***"
+  echo
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-base-eta2-cluster0-nochr3-${region}-ebv-mortality-int" \
+  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/ebv_mortality.csv \
   --features_sets_dir $dataset_ex/features-sets/ --select $dataset_ex/features-sets/"$region" --objective "reg:squarederror"\
   --base_score 0
 done
