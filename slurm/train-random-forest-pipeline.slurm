@@ -31,10 +31,10 @@ set +e
 echo
 echo "***STARTING RF (cluster 0)***"
 echo
-srun python xgbclassifier.py --model_name "train-random-forest-hk-nnv-pipeline-rf" --method hist \
---dataset $dataset_in/features.csv --target $dataset_in/mortality.csv --cluster $dataset_in/cluster-0.csv --select $dataset_in/features-sets/"Hk_NNV_broad.csv" \
---num_trees 1 --num_parallel_trees 1000 --max_depth 100 \
---sample_bynode 0.001 --subsample 0.99
+#srun python xgbclassifier.py --model_name "train-random-forest-hk-nnv-pipeline-rf" --method hist \
+#--dataset $dataset_in/features.csv --target $dataset_in/mortality.csv --cluster $dataset_in/cluster-0.csv --select $dataset_in/features-sets/"Hk_NNV_broad.csv" \
+#--num_trees 1 --num_parallel_trees 1000 --max_depth 100 \
+#--sample_bynode 0.001 --subsample 0.99
 
 features_dir=$(realpath "train-random-forest-hk-nnv-pipeline-rf")
 features_gains=$features_dir/importance-0.gains.csv
@@ -46,5 +46,4 @@ echo "***STARTING XGB (cluster 0)***"
 echo
 srun python xgbclassifier.py --model_name "train-random-forest-hk-nnv-pipeline-xgb" --method hist \
 --dataset $dataset_in/features.csv --target $dataset_in/mortality.csv --cluster $dataset_in/cluster-0.csv --select "$features" \
---num_trees 10 --num_parallel_trees 1000 --max_depth 100 \
---sample_bynode 0.001 --subsample 0.99
+--num_trees 100 --num_parallel_trees 1
