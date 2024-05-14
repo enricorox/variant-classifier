@@ -30,4 +30,4 @@ set +e
 echo
 echo "***Building filtered dataset***"
 echo
-srun python filtered-dataset-builder.py --dataset $dataset_in/features.csv --select $dataset_in/features-sets/"Hk_NNV_broad.csv" \
+srun python filtered-dataset-builder.py --dataset $dataset_in/features.csv --select $dataset_in/features-sets/"Hk_NNV_broad.csv" --output_file $dataset_in/output.csv
