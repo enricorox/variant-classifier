@@ -1,17 +1,8 @@
 import argparse
-import json
-import math
-import os
 import time
 
-import graphviz
 import numpy as np
 import pandas as pd
-import xgboost as xgb
-from numpy import ndarray
-import sklearn.metrics as mt
-from sklearn.model_selection import train_test_split
-from xgboost import Booster
 
 
 def read_feature_list(selection_file):
