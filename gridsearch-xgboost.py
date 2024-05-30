@@ -15,6 +15,8 @@ label_file = "/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/include-c
 train_set_file = "/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/include-chr3/cluster-0.csv"
 selected_features_file = "/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/include-chr3/features-sets/Hk_NNV_broad.csv"
 
+print("Reading data...", flush=True)
+
 data = pd.read_csv(data_file, low_memory=False,
                    index_col=0,  # first column as index
                    header=0  # first row as header
