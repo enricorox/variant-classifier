@@ -1,41 +1,64 @@
+import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import GridSearchCV, train_test_split
 
-data_file = "datasets/include-chr3/main-integers.csv"
+
+def read_feature_list(selection_file):
+    features = pd.read_csv(selection_file, header=None)
+    print(f"Read {len(features)} features to select")
+    return features.iloc[:, 0].tolist()
+
+
+data_file = "/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/include-chr3/features.csv"
+label_file = "/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/include-chr3/mortality.csv"
+train_set_file = "/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/include-chr3/cluster-0.csv"
+selected_features_file = "/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier/datasets/include-chr3/features-sets/Hk_NNV_broad.csv"
+
 data = pd.read_csv(data_file, low_memory=False,
                    index_col=0,  # first column as index
                    header=0  # first row as header
                    )
-y = data["phenotype"]
-data.drop(columns=["phenotype", "cluster"])
+y = pd.read_csv(label_file, low_memory=False,
+                index_col=0,  # first column as index
+                header=0  # first row as header
+                )
+
 X = data.sample(frac=1, axis=1, random_state=42)
 
-# Dividi il dataset in set di addestramento e set di test
+print(f"Reading training set IDs...", flush=True)
+train_cluster = pd.read_csv(train_set_file, header=0)["id"].values.tolist()
+
+print("Selecting features...", flush=True)
+selected_features = read_feature_list(selected_features_file)
+data = data[selected_features]
+print("Done.", flush=True)
+
+X = X.loc[train_cluster]
+y = y.loc[train_cluster]  # Series
+y = pd.DataFrame(y)
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Definisci la griglia degli iperparametri da testare
 param_grid = {
     'learning_rate': [0.01, 0.1, 0.2],
     'max_depth': [4, 5, 6],
     'min_child_weight': [1, 2, 3],
     # 'subsample': [0.7, 0.8, 0.9, 1],
-    'colsample_bytree': [0.7, 0.8, 1],
+    # 'colsample_bytree': [0.7, 0.8, 1],
     'grow_policy': ['lossguide', 'depthwise']
 }
 
-# Inizializza il regressore XGBoost
-xgb_model = xgb.XGBRegressor()
+xgb_model = xgb.XGBClassifier()
 
-# Crea l'oggetto GridSearchCV
-grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, n_jobs=1, pre_dispatch=1,
-                           scoring='neg_mean_squared_error', verbose=3)
+grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=2, n_jobs=1, pre_dispatch=1,
+                           # scoring='neg_mean_squared_error',
+                           error_score=np.Inf, verbose=3)
 
-# Esegui la ricerca a griglia sull'insieme di addestramento
 grid_search.fit(X_train, y_train)
 
-# Stampare i migliori iperparametri trovati
-print(f"Migliori iperparametri trovati: {grid_search.best_params_}")
+# grid_search.get_params()
+print(f"Migliori iperparametri trovati:\n{grid_search.best_params_}")
 print(f"Migliore validation score: {grid_search.best_score_}")
 
 # Valutare le prestazioni del modello migliore sui dati di test
