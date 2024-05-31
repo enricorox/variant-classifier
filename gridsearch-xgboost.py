@@ -36,11 +36,13 @@ selected_features = read_feature_list(selected_features_file)
 data = data[selected_features]
 print("Done.", flush=True)
 
-X = X.loc[train_cluster]
-y = y.loc[train_cluster]  # Series
-y = pd.DataFrame(y)
+X_train = X.loc[train_cluster]
+y_train = y.loc[train_cluster]  # Series
+y_train = pd.DataFrame(y_train)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_test = data.drop(train_cluster)
+y_test = y.drop(train_cluster)  # Series
+y_test = pd.DataFrame(y_test)
 
 param_grid = {
     'learning_rate': [0.01, 0.1, 0.2],
@@ -57,6 +59,7 @@ grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=2, n_j
                            # scoring='neg_mean_squared_error',
                            error_score=np.Inf, verbose=3)
 
+print("\n*** Starting grid search... ***\n", flush=True)
 grid_search.fit(X_train, y_train)
 
 # grid_search.get_params()
