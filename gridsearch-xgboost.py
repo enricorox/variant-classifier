@@ -55,7 +55,7 @@ param_grid = {
 
 xgb_model = xgb.XGBClassifier()
 
-grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=2, n_jobs=1, pre_dispatch=1,
+grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5, n_jobs=1, pre_dispatch=1,
                            # scoring='neg_mean_squared_error',
                            error_score=np.Inf, verbose=3)
 
