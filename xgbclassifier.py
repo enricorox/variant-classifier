@@ -124,7 +124,7 @@ class XGBoostVariant:
     importance_weights = None
     importance_gains = None
 
-    def __init__(self, model_name, num_trees, max_depth, eta, early_stopping,
+    def __init__(self, model_name, num_trees, max_depth, min_child_weight, eta, early_stopping,
                  method, objective, base_score, grow_policy,
                  data_file, target_file, validation, do_shuffle_features,
                  selected_features_file, train_set_file,
@@ -148,6 +148,7 @@ class XGBoostVariant:
         self.accuracy = None
         self.num_features = None
         self.max_depth = max_depth
+        self.min_child_weight = min_child_weight
         self.eta = eta
         self.early_stopping = early_stopping
         self.by_tree = sample_bytree
@@ -305,7 +306,8 @@ class XGBoostVariant:
             params = {"verbosity": 1, "device": "cpu", "tree_method": self.method,
                       "objective": self.objective, "grow_policy": self.grow_policy,
                       "seed": self.random_state,
-                      "eta": self.eta, "max_depth": self.max_depth}
+                      "eta": self.eta, "max_depth": self.max_depth, "min_child_weight": self.min_child_weight
+                      }
 
             if self.by_tree < 1:
                 params["colsample_bytree"] = self.by_tree
@@ -549,6 +551,7 @@ if __name__ == "__main__":
     parser.add_argument("--early_stopping", type=int, default=None, help="Stop after n non-increasing iterations")
     parser.add_argument("--max_depth", type=int, default=6, help="Max depth for trees")
     parser.add_argument("--eta", type=float, default=.2, help="Learning rate")
+    parser.add_argument("--min_child_weight", type=int, default=1, help="Min child weigth, used to simplify the tree")
 
     parser.add_argument("--sample_bytree", type=float, default=1, help="Sample features by tree")
     parser.add_argument("--sample_bylevel", type=float, default=1, help="Sample features by level")
@@ -577,7 +580,7 @@ if __name__ == "__main__":
 
 
                          method=args.method, objective=args.objective, base_score=args.base_score, grow_policy=args.grow_policy,
-                         num_trees=args.num_trees, early_stopping=args.early_stopping, max_depth=args.max_depth, eta=args.eta,
+                         num_trees=args.num_trees, early_stopping=args.early_stopping, max_depth=args.max_depth, min_child_weight=args.min_child_weight, eta=args.eta,
                          sample_bytree=args.sample_bytree, sample_by_level=args.sample_bylevel, sample_bynode=args.sample_bynode,
 
                          subsample=args.subsample, num_parallel_trees=args.num_parallel_trees,
