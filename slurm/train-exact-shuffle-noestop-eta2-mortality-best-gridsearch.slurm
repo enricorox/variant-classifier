@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#SBATCH --job-name exact-shuffle-noestop-eta2-mortality-best-gridsearch
+#SBATCH --output logs/exact-shuffle-noestop-eta2-mortality-best-gridsearch.log
+#SBATCH --error logs/exact-shuffle-noestop-eta2-mortality-best-gridsearch.log
+#SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
+#SBATCH --mail-type ALL
+#SBATCH
+#SBATCH --time 35-00:00:00
+# use many CPU if not using CUDA
+#SBATCH --cpus-per-task 24
+#SBATCH --partition allgroups
+#SBATCH --mem 200G
+# uncomment to use GPU
+##SBATCH --gres=gpu:rtx
+
+set -e
+
+source /nfsd/bcb/bcbg/rossigno/.miniconda3/bin/activate
+
+base_folder="/nfsd/bcb/bcbg/rossigno/PNRR/variant-classifier"
+
+cd $base_folder
+
+dataset_in="${base_folder}/datasets/include-chr3/"
+dataset_ex="${base_folder}/datasets/exclude-chr3/"
+
+# broads=("Br_mock_broad.csv" "Br_NNV_broad.csv" "Hk_mock_broad.csv" "Hk_NNV_broad.csv" "broad.csv")
+
+broads=("Hk_NNV_broad")
+
+set +e
+
+for region in "${broads[@]}"; do
+  echo
+  echo "***STARTING $region (cluster 0)***"
+  echo
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-mortality-best-gridsearch" \
+  --dataset $dataset_in/features.csv --cluster $dataset_in/cluster-0.csv --target $dataset_in/mortality.csv \
+  --features_sets_dir $dataset_in/features-sets/ --select $dataset_in/features-sets/"$region" \
+  --grow_policy lossguide --max_depth 4 --eta 0.1 --min_child_weight 3
+done
