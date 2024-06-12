@@ -27,7 +27,7 @@ dataset_ex="${base_folder}/datasets/exclude-chr3/"
 
 # broads=("Br_mock_broad.csv" "Br_NNV_broad.csv" "Hk_mock_broad.csv" "Hk_NNV_broad.csv" "broad.csv")
 
-broads=("Hk_NNV_broad")
+broads=("Hk_NNV_broad.csv")
 
 set +e
 
