@@ -28,22 +28,25 @@ y = pd.read_csv(label_file, low_memory=False,
 
 X = data.sample(frac=1, axis=1, random_state=42)
 
-print(f"Reading training set IDs...", flush=True)
-train_cluster = pd.read_csv(train_set_file, header=0)["id"].values.tolist()
-
 print("Selecting features...", flush=True)
 selected_features = read_feature_list(selected_features_file)
 data = data[selected_features]
 print("Done.", flush=True)
 
-X_train = X.loc[train_cluster]
-y_train = y.loc[train_cluster]  # Series
-y_train = pd.DataFrame(y_train)
+if train_set_file is not None:
+    print(f"Reading training set IDs...", flush=True)
+    train_cluster = pd.read_csv(train_set_file, header=0)["id"].values.tolist()
 
-X_test = data.drop(train_cluster)
-y_test = y.drop(train_cluster)  # Series
-y_test = pd.DataFrame(y_test)
+    X_train = X.loc[train_cluster]
+    y_train = y.loc[train_cluster]  # Series
+    y_train = pd.DataFrame(y_train)
 
+    X_test = data.drop(train_cluster)
+    y_test = y.drop(train_cluster)  # Series
+    y_test = pd.DataFrame(y_test)
+else:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=42)
+    
 param_grid = {
     'learning_rate': [0.01, 0.1, 0.2],
     'max_depth': [4, 5, 6],

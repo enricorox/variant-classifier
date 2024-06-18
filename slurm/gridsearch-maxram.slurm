@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name gridsearch
-#SBATCH --output logs/gridsearch-maxram.log
-#SBATCH --error logs/gridsearch-maxram.log
+#SBATCH --job-name gridsearch-80-20
+#SBATCH --output logs/gridsearch-maxram-80-20.log
+#SBATCH --error logs/gridsearch-maxram-80-20.log
 #SBATCH --mail-user enrico.rossignolo@studenti.unipd.it
 #SBATCH --mail-type ALL
 #SBATCH
