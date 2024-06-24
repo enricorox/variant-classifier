@@ -28,14 +28,7 @@ dataset_ex="${base_folder}/datasets/exclude-chr3/"
 regions=("Br_mock_broad.csv" "Br_NNV_broad.csv" "Hk_mock_broad.csv" "Hk_NNV_broad.csv" "broad.csv"
                "Br_mock_narr.csv" "Br_NNV_narr.csv" "Hk_mock_narr.csv" "Hk_NNV_narr.csv" "narrow.csv")
 
-for region in "${regions[@]}"; do
-  echo
-  echo "***STARTING $region (EXCLUDE CHR3)***"
-  echo
-  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-int" \
-    --dataset "${dataset_ex}/features.csv" --target "${dataset_ex}/mortality.csv" --select "${dataset_ex}/regions/${region}" \
-    --features_sets_dir "${dataset_ex}/regions/"
-done
+
 
 for region in "${regions[@]}"; do
   echo
@@ -46,3 +39,11 @@ for region in "${regions[@]}"; do
     --features_sets_dir "${dataset_in}/regions/"
 done
 
+for region in "${regions[@]}"; do
+  echo
+  echo "***STARTING $region (EXCLUDE CHR3)***"
+  echo
+  srun python xgbclassifier.py --model_name "exact-shuffle-noestop-eta2-nochr3-${region}-int" \
+    --dataset "${dataset_ex}/features.csv" --target "${dataset_ex}/mortality.csv" --select "${dataset_ex}/regions/${region}" \
+    --features_sets_dir "${dataset_ex}/regions/"
+done
