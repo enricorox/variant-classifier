@@ -24,8 +24,9 @@ See the help for advanced options
 - `python xgbclassifier.py --help`
 
 ## Cite
-If you use this repo in your work, please cite
+If you use this repo in your work, please cite (paper under submission)
 
 ```
-Wait for publication...
+Machine Learning Methods for Phenotype Prediction from
+High-dimensional, Low Population Aquaculture Data
 ```
