@@ -22,7 +22,7 @@ Launch the script
 
 See the help for advanced options
 - `python xgbclassifier.py --help`
-- 
+
 ## Cite
 If you use this repo in your work, please cite
 
