@@ -24,7 +24,7 @@ See the help for advanced options
 - `python xgbclassifier.py --help`
 
 ## Cite
-If you use this repo in your work, please cite (paper under submission)
+If you use this repo in your work, please cite
 
 ```
 @article{ml2025phenotype,
