@@ -27,6 +27,12 @@ See the help for advanced options
 If you use this repo in your work, please cite (paper under submission)
 
 ```
-Machine Learning Methods for Phenotype Prediction from
-High-dimensional, Low Population Aquaculture Data
+@article{ml2025phenotype,
+  title={Machine Learning Methods for Phenotype Prediction from High-Dimensional, Low Population Aquaculture Data},
+  author={Faldani, Giovanni and Rossignolo, Enrico and Signor, Eleonora and Longo, Alessio and Faggion, Sara and Bargelloni, Luca and Comin, Matteo and Pizzi, Cinzia and others},
+  journal={BIOSTEC},
+  pages={638--646},
+  year={2025}
+}
+
 ```
